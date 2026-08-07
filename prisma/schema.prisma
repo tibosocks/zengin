@@ -1,0 +1,492 @@
+// zenginsocks.com — veri modeli
+// Plan: PLAN.md Bölüm 4
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// Bağlantı adresi prisma.config.ts içinde (Prisma 7).
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- katalog
+
+model Category {
+  id       String  @id @default(cuid())
+  name     String
+  slug     String  @unique
+  parentId String?
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+
+  sortOrder  Int     @default(0)
+  imageUrl   String?
+  isActive   Boolean @default(true)
+  showInMenu Boolean @default(true)
+
+  metaTitle       String?
+  metaDescription String?
+
+  products ProductCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId, sortOrder])
+  @@index([isActive])
+}
+
+model Brand {
+  id      String  @id @default(cuid())
+  name    String  @unique
+  slug    String  @unique
+  logoUrl String?
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  shortDesc   String?
+  description String? // HTML
+  brandId     String?
+
+  brand Brand? @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  isActive   Boolean @default(true)
+  isNew      Boolean @default(false)
+  isFeatured Boolean @default(false)
+  sortOrder  Int     @default(0)
+
+  metaTitle       String?
+  metaDescription String?
+
+  // Ticimax'ten aktarım sırasında eşleştirme için; aktarımın tekrar
+  // çalıştırılabilmesi buna bağlı.
+  externalId String? @unique
+
+  categories ProductCategory[]
+  images     ProductImage[]
+  variants   Variant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([isNew])
+  @@index([isFeatured])
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  isPrimary  Boolean @default(false) // breadcrumb bu kategoriden kurulur
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@index([categoryId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+
+  // Görsel belirli bir seçenek değerine (ör. renk) aitse
+  optionValueId String?
+
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValue OptionValue? @relation(fields: [optionValueId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, sortOrder])
+}
+
+// ---------------------------------------------------------------- varyant
+
+enum OptionDisplayType {
+  dropdown
+  swatch
+  button
+}
+
+model OptionType {
+  id          String            @id @default(cuid())
+  name        String            @unique // "Beden", "Renk"
+  displayType OptionDisplayType @default(dropdown)
+  sortOrder   Int               @default(0)
+
+  values OptionValue[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OptionValue {
+  id           String  @id @default(cuid())
+  optionTypeId String
+  value        String // "36-40", "5-6 Yaş", "Siyah"
+  colorHex     String?
+  sortOrder    Int     @default(0)
+
+  optionType OptionType           @relation(fields: [optionTypeId], references: [id], onDelete: Cascade)
+  variants   VariantOptionValue[]
+  images     ProductImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([optionTypeId, value])
+  @@index([optionTypeId, sortOrder])
+}
+
+model Variant {
+  id        String  @id @default(cuid())
+  productId String
+  sku       String? @unique
+  barcode   String?
+
+  // Fiyatlar KDV HARİÇ ve kuruş hassasiyetinde tutulur.
+  // Bayi fiyatı burada saklanmaz, Customer.discountPercent ile hesaplanır.
+  price     Decimal  @db.Decimal(12, 2)
+  listPrice Decimal? @db.Decimal(12, 2) // üstü çizili gösterim için
+  vatRate   Decimal  @db.Decimal(5, 2)  @default(10.00)
+
+  stock             Int @default(0) // fiziksel adet
+  reserved          Int @default(0) // açık siparişlerde bekleyen adet
+  lowStockThreshold Int @default(0)
+
+  isActive   Boolean @default(true)
+  externalId String? @unique
+
+  product        Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValues   VariantOptionValue[]
+  stockMovements StockMovement[]
+  customPrices   CustomerVariantPrice[]
+  orderItems     OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([isActive])
+}
+
+model VariantOptionValue {
+  variantId     String
+  optionValueId String
+
+  variant     Variant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  optionValue OptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  @@id([variantId, optionValueId])
+  @@index([optionValueId])
+}
+
+enum StockMovementReason {
+  satis
+  iptal
+  sayim
+  giris
+  duzeltme
+  aktarim
+}
+
+model StockMovement {
+  id        String              @id @default(cuid())
+  variantId String
+  delta     Int
+  reason    StockMovementReason
+  orderId   String?
+  userId    String?
+  note      String?
+
+  variant Variant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  order   Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  user    AdminUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([variantId, createdAt])
+}
+
+// ---------------------------------------------------------------- müşteri
+
+enum CustomerType {
+  bireysel
+  bayi
+}
+
+enum CustomerStatus {
+  aktif
+  onay_bekliyor
+  pasif
+}
+
+model Customer {
+  id           String  @id @default(cuid())
+  fullName     String
+  phone        String  @unique
+  email        String? @unique
+  passwordHash String? // sadece giriş yapan bayilerde dolu
+  companyName  String?
+  taxNo        String?
+
+  type   CustomerType   @default(bireysel)
+  status CustomerStatus @default(aktif)
+
+  // Bu müşteriye özel yüzdelik indirim. Ondalıklı olabilir (17.50).
+  discountPercent Decimal @db.Decimal(5, 2) @default(0)
+  discountNote    String?
+
+  note String?
+
+  addresses      Address[]
+  orders         Order[]
+  customPrices   CustomerVariantPrice[]
+  discountLogs   DiscountChangeLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+}
+
+// Yüzdelik indirimin geçerli olmadığı nadir durumlar için istisna tablosu.
+model CustomerVariantPrice {
+  customerId String
+  variantId  String
+  price      Decimal @db.Decimal(12, 2) // KDV hariç
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  variant  Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([customerId, variantId])
+  @@index([variantId])
+}
+
+// İndirim yüzdesi elle giriliyor; kim ne zaman değiştirdi izlenebilir olmalı.
+model DiscountChangeLog {
+  id         String  @id @default(cuid())
+  customerId String
+  fromValue  Decimal @db.Decimal(5, 2)
+  toValue    Decimal @db.Decimal(5, 2)
+  userId     String?
+  note       String?
+
+  customer Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user     AdminUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId, createdAt])
+}
+
+model Address {
+  id          String  @id @default(cuid())
+  customerId  String
+  title       String
+  city        String?
+  district    String?
+  fullAddress String
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+}
+
+// ---------------------------------------------------------------- sipariş
+
+enum OrderStatus {
+  yeni
+  onaylandi
+  hazirlaniyor
+  teslime_hazir
+  teslim_edildi
+  iptal
+}
+
+enum OrderChannel {
+  web
+  whatsapp
+  panel
+}
+
+model Order {
+  id         String       @id @default(cuid())
+  orderNo    String       @unique // ZG-2026-0001
+  customerId String
+  status     OrderStatus  @default(yeni)
+  channel    OrderChannel @default(web)
+
+  // Sipariş anındaki indirim. Müşterinin yüzdesi sonradan değişse bile
+  // bu siparişin tutarı değişmez.
+  discountPercent Decimal @db.Decimal(5, 2) @default(0)
+
+  subtotal   Decimal @db.Decimal(12, 2) // KDV hariç, indirim uygulanmış
+  vatTotal   Decimal @db.Decimal(12, 2)
+  discount   Decimal @db.Decimal(12, 2) @default(0) // liste fiyatına göre toplam indirim
+  grandTotal Decimal @db.Decimal(12, 2)
+
+  customerNote String?
+  adminNote    String?
+
+  // Rezervasyonun ne zamana kadar geçerli sayılacağı (bekleyen sipariş uyarısı)
+  expiresAt DateTime?
+
+  customer       Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  items          OrderItem[]
+  statusHistory  OrderStatusHistory[]
+  stockMovements StockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([customerId])
+}
+
+// Sipariş kalemleri o anki bilgiyi dondurur; ürün sonradan değişse/silinse
+// bile sipariş kaydı bozulmaz.
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  variantId String?
+
+  productName String
+  sku         String?
+  optionsText String? // "Beden: 36-40"
+
+  listPrice Decimal @db.Decimal(12, 2) // indirim öncesi, KDV hariç
+  unitPrice Decimal @db.Decimal(12, 2) // indirim sonrası, KDV hariç
+  vatRate   Decimal @db.Decimal(5, 2)
+  quantity  Int
+  lineTotal Decimal @db.Decimal(12, 2) // unitPrice * quantity, KDV hariç
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([variantId])
+}
+
+model OrderStatusHistory {
+  id         String       @id @default(cuid())
+  orderId    String
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  userId     String?
+  note       String?
+
+  order Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  AdminUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+// ---------------------------------------------------------------- yönetim
+
+enum AdminRole {
+  owner
+  admin
+  depo
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         AdminRole @default(admin)
+  isActive     Boolean   @default(true)
+
+  lastLoginAt DateTime?
+
+  stockMovements StockMovement[]
+  statusChanges  OrderStatusHistory[]
+  discountLogs   DiscountChangeLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum NotificationType {
+  yeni_siparis
+  bayi_basvurusu
+  siparis_iptal
+  kritik_stok
+  bekleyen_siparis
+}
+
+model Notification {
+  id      String           @id @default(cuid())
+  type    NotificationType
+  title   String
+  body    String?
+  link    String?
+  readAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([readAt, createdAt])
+}
+
+// Basit anahtar-değer ayar tablosu. Tipi kodda doğrulanır.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Banner {
+  id              String  @id @default(cuid())
+  imageUrl        String
+  mobileImageUrl  String?
+  link            String?
+  alt             String?
+  sortOrder       Int     @default(0)
+  isActive        Boolean @default(true)
+  startsAt        DateTime?
+  endsAt          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model Page {
+  id          String  @id @default(cuid())
+  title       String
+  slug        String  @unique
+  contentHtml String
+  isActive    Boolean @default(true)
+
+  metaTitle       String?
+  metaDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
