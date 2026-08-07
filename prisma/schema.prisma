@@ -104,6 +104,10 @@ model ProductImage {
   alt       String?
   sortOrder Int     @default(0)
 
+  // Aktarımda görselin geldiği adres. Aktarım scripti tekrar
+  // çalıştırıldığında aynı görseli yeniden indirmemek için.
+  sourceUrl String?
+
   // Görsel belirli bir seçenek değerine (ör. renk) aitse
   optionValueId String?
 
@@ -113,6 +117,7 @@ model ProductImage {
   createdAt DateTime @default(now())
 
   @@index([productId, sortOrder])
+  @@index([sourceUrl])
 }
 
 // ---------------------------------------------------------------- varyant

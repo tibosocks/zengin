@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { FileSpreadsheet, Plus } from "lucide-react";
 
 import { buttonStyles } from "@/components/ui/button";
 import { buildCategoryOptions } from "@/lib/category-tree";
@@ -120,10 +120,19 @@ export default async function ProductsPage({
         title="Ürünler"
         description={`${total} ürün. Fiyat ve stok kutularına tıklayıp doğrudan düzenleyebilirsiniz.`}
         action={
-          <Link href="/panel/urunler/yeni" className={buttonStyles()}>
-            <Plus className="size-4" />
-            Yeni ürün
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/panel/urunler/aktar"
+              className={buttonStyles({ variant: "secondary" })}
+            >
+              <FileSpreadsheet className="size-4" />
+              Toplu aktarım
+            </Link>
+            <Link href="/panel/urunler/yeni" className={buttonStyles()}>
+              <Plus className="size-4" />
+              Yeni ürün
+            </Link>
+          </div>
         }
       />
 

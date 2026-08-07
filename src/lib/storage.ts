@@ -1,5 +1,8 @@
-import "server-only";
-
+// NOT: burada `import "server-only"` YOK.
+// O paket react-server koşulu dışında bilerek hata fırlatıyor ve bu modül
+// aktarım CLI'ından (scripts/import-catalog.ts, düz Node) da kullanılıyor.
+// Yanlışlıkla istemciye sızma riski düşük: modül sharp / node:fs / pg gibi
+// sunucuya özel bağımlılıklar taşıdığı için istemci derlemesi zaten kırılır.
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -65,6 +68,51 @@ function client(config: NonNullable<ReturnType<typeof r2Config>>) {
 }
 
 export class UploadError extends Error {}
+
+/**
+ * Bir adresteki görseli indirip saklar. Aktarımda kullanılıyor.
+ *
+ * Zaman aşımı şart: Ticimax'in görsel sunucusu yanıt vermezse 400 ürünlük
+ * aktarım tek bir görselde sonsuza kadar asılı kalır.
+ */
+export async function storeImageFromUrl(
+  url: string,
+  prefix = "urunler",
+  timeoutMs = 20_000,
+): Promise<StoredImage> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new UploadError(`Görsel indirilemedi (HTTP ${response.status}): ${url}`);
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    const bytes = Buffer.from(await response.arrayBuffer());
+
+    // İçerik tipi yoksa uzantıdan tahmin et; bazı sunucular boş dönüyor
+    const type = ALLOWED_TYPES.has(contentType)
+      ? contentType
+      : url.toLowerCase().endsWith(".png")
+        ? "image/png"
+        : "image/jpeg";
+
+    const name = url.split("/").pop() || "gorsel";
+    return await storeImage(new File([new Uint8Array(bytes)], name, { type }), prefix);
+  } catch (error) {
+    if (error instanceof UploadError) throw error;
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new UploadError(`Görsel zaman aşımına uğradı: ${url}`);
+    }
+    throw new UploadError(
+      `Görsel alınamadı: ${url} (${error instanceof Error ? error.message : "bilinmeyen hata"})`,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * Yüklenen görseli WebP'ye çevirir, boyutlandırır ve saklar.
