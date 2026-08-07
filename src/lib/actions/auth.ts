@@ -23,10 +23,14 @@ export async function adminLogin(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  // formData.get() alan yoksa null döner. Zod'un .optional() hali undefined'a
+  // izin verir ama null'a vermez; null geçilirse doğrulama "expected string,
+  // received null" ile kırılır ve kullanıcı hiç giriş yapamaz.
+  // Boş metne çevirince kendi Türkçe mesajlarımız devreye giriyor.
   const parsed = loginSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-    next: formData.get("next"),
+    email: formData.get("email") ?? "",
+    password: formData.get("password") ?? "",
+    next: formData.get("next") ?? undefined,
   });
 
   if (!parsed.success) {

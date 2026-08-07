@@ -28,7 +28,8 @@ function readForm(formData: FormData) {
   const rawParent = formData.get("parentId");
   return categorySchema.safeParse({
     id: (formData.get("id") as string) || undefined,
-    name: formData.get("name"),
+    // null geçilirse zod tip hatası verip kendi Türkçe mesajımızı atlıyor
+    name: formData.get("name") ?? "",
     slug: (formData.get("slug") as string) || undefined,
     parentId: !rawParent || rawParent === "" ? null : (rawParent as string),
     imageUrl: (formData.get("imageUrl") as string) || undefined,
