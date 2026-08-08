@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { addToCart } from "@/lib/actions/cart";
 import { formatKurus } from "@/lib/price";
 import type { ProductDetail } from "@/lib/shop/catalog";
 import { cn } from "@/lib/utils";
@@ -34,22 +36,32 @@ export function ProductBuyBox({
       : {},
   );
   const [quantity, setQuantity] = useState(1);
+  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const chosenIds = product.optionTypes
     .map((type) => selected[type.id])
     .filter(Boolean) as string[];
 
-  const variant = useMemo(() => {
-    if (singleVariant) return singleVariant;
-    if (chosenIds.length !== product.optionTypes.length) return null;
+  // Birkaç varyantlık arama; elle memoize etmiyoruz, React Compiler
+  // gerekirse kendisi hallediyor.
+  const variant = findVariant(product, chosenIds, singleVariant);
 
-    const target = [...chosenIds].sort().join("|");
-    return (
-      product.variants.find(
-        (candidate) => [...candidate.optionValueIds].sort().join("|") === target,
-      ) ?? null
-    );
-  }, [chosenIds, product.variants, product.optionTypes.length, singleVariant]);
+  function submit() {
+    if (!variant) return;
+    setFeedback(null);
+    startTransition(async () => {
+      const result = await addToCart(variant.id, quantity);
+      setFeedback({
+        ok: result.ok,
+        text: result.ok
+          ? (result.message ?? "Sepete eklendi.")
+          : (result.error ?? "Eklenemedi."),
+      });
+      if (result.ok) router.refresh();
+    });
+  }
 
   /** Bir seçenek değeri, diğer seçimlerle birlikte hiç stok veriyor mu? */
   function availabilityOf(typeId: string, valueId: string) {
@@ -186,14 +198,37 @@ export function ProductBuyBox({
         <Button
           size="lg"
           className="w-full"
-          disabled={!variant || variant.available <= 0}
+          onClick={submit}
+          disabled={!variant || variant.available <= 0 || isPending}
         >
-          {!variant
-            ? "Seçim yapın"
-            : variant.available <= 0
-              ? "Tükendi"
-              : "Sepete ekle"}
+          {isPending
+            ? "Ekleniyor…"
+            : !variant
+              ? "Seçim yapın"
+              : variant.available <= 0
+                ? "Tükendi"
+                : "Sepete ekle"}
         </Button>
+
+        {feedback ? (
+          <p
+            role="status"
+            className={cn(
+              "rounded-md px-3 py-2 text-center text-sm",
+              feedback.ok ? "bg-ok-soft text-ok" : "bg-danger-soft text-danger",
+            )}
+          >
+            {feedback.text}
+            {feedback.ok ? (
+              <>
+                {" "}
+                <a href="/sepet" className="font-medium underline">
+                  Sepete git
+                </a>
+              </>
+            ) : null}
+          </p>
+        ) : null}
 
         {whatsappHref ? (
           <a
@@ -215,5 +250,21 @@ export function ProductBuyBox({
         <p className="text-xs text-muted">Ürün kodu: {variant.sku}</p>
       ) : null}
     </div>
+  );
+}
+
+function findVariant(
+  product: ProductDetail,
+  chosenIds: string[],
+  singleVariant: ProductDetail["variants"][number] | null,
+) {
+  if (singleVariant) return singleVariant;
+  if (chosenIds.length !== product.optionTypes.length) return null;
+
+  const target = [...chosenIds].sort().join("|");
+  return (
+    product.variants.find(
+      (candidate) => [...candidate.optionValueIds].sort().join("|") === target,
+    ) ?? null
   );
 }

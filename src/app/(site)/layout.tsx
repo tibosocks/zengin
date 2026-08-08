@@ -1,16 +1,17 @@
 import Link from "next/link";
 
 import { SiteHeader } from "@/components/shop/site-header";
+import { cartCount } from "@/lib/shop/cart";
 import { getMenuTree } from "@/lib/shop/catalog";
 
 export const dynamic = "force-dynamic";
 
 export default async function SiteLayout({ children }: LayoutProps<"/">) {
-  const menu = await getMenuTree();
+  const [menu, count] = await Promise.all([getMenuTree(), cartCount()]);
 
   return (
     <>
-      <SiteHeader menu={menu} />
+      <SiteHeader menu={menu} cartCount={count} />
 
       <main className="flex-1">{children}</main>
 

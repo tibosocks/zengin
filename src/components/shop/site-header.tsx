@@ -9,7 +9,13 @@ import { useState } from "react";
 import type { MenuCategory } from "@/lib/shop/catalog";
 import { cn } from "@/lib/utils";
 
-export function SiteHeader({ menu }: { menu: MenuCategory[] }) {
+export function SiteHeader({
+  menu,
+  cartCount,
+}: {
+  menu: MenuCategory[];
+  cartCount: number;
+}) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -118,10 +124,17 @@ export function SiteHeader({ menu }: { menu: MenuCategory[] }) {
           </Link>
           <Link
             href="/sepet"
-            aria-label="Sepet"
-            className="rounded p-2 text-ink-soft hover:bg-line-soft"
+            aria-label={
+              cartCount > 0 ? `Sepet — ${cartCount} ürün` : "Sepet"
+            }
+            className="relative rounded p-2 text-ink-soft hover:bg-line-soft"
           >
             <ShoppingBag className="size-5" strokeWidth={1.75} />
+            {cartCount > 0 ? (
+              <span className="tnum absolute -top-0.5 -right-0.5 flex size-4.5 min-w-4.5 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-medium text-white">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            ) : null}
           </Link>
         </div>
       </div>
