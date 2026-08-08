@@ -5,7 +5,7 @@
 // sunucuya özel bağımlılıklar taşıdığı için istemci derlemesi zaten kırılır.
 import { kurusToDecimalString } from "@/lib/price";
 import { prisma } from "@/lib/prisma";
-import { slugify, uniqueSlug } from "@/lib/slug";
+import { categorySlugCandidates, slugify, uniqueSlug } from "@/lib/slug";
 import { UploadError, storeImageFromUrl } from "@/lib/storage";
 
 import type { GroupedProduct, ImportPlan, RowIssue } from "./types";
@@ -49,6 +49,7 @@ async function resolveCategoryPath(
 
   let parentId: string | null = null;
   let cacheKey = "";
+  const ancestors: string[] = [];
 
   for (const name of parts) {
     cacheKey = cacheKey === "" ? name : `${cacheKey} > ${name}`;
@@ -69,6 +70,7 @@ async function resolveCategoryPath(
     if (existing) {
       cache.set(cacheKey, existing.id);
       parentId = existing.id;
+      ancestors.push(name);
       continue;
     }
 
@@ -80,6 +82,7 @@ async function resolveCategoryPath(
       const placeholder = `yeni:${cacheKey}`;
       cache.set(cacheKey, placeholder);
       parentId = placeholder;
+      ancestors.push(name);
       continue;
     }
 
@@ -89,13 +92,24 @@ async function resolveCategoryPath(
       select: { sortOrder: true },
     });
 
-    const slug = await uniqueSlug(name, async (candidate) => {
+    const taken = async (candidate: string) => {
       const found = await prisma.category.findUnique({
         where: { slug: candidate },
         select: { id: true },
       });
       return found !== null;
-    });
+    };
+
+    // Önce "bambu-patik", çakışırsa "kadin-bambu-patik", sonra tam yol,
+    // en son çare sayı eki.
+    let slug: string | null = null;
+    for (const candidate of categorySlugCandidates(name, ancestors)) {
+      if (!(await taken(candidate))) {
+        slug = candidate;
+        break;
+      }
+    }
+    slug ??= await uniqueSlug(name, taken);
 
     const category: { id: string } = await prisma.category.create({
       data: { name, slug, parentId, sortOrder: (last?.sortOrder ?? -1) + 1 },
@@ -104,6 +118,7 @@ async function resolveCategoryPath(
 
     cache.set(cacheKey, category.id);
     parentId = category.id;
+    ancestors.push(name);
   }
 
   return parentId;
@@ -217,22 +232,26 @@ export async function runImport(
     if (existing) counts.productsToUpdate += 1;
     else counts.productsToCreate += 1;
 
-    const categoryId = product.categoryPath
-      ? await resolveCategoryPath(
-          product.categoryPath,
-          categoryCache,
-          newCategories,
-          options.dryRun,
-        )
-      : null;
-
-    if (product.categoryPath && !categoryId) {
-      issues.push({
-        rowNumber: product.variants[0]?.rowNumber ?? 0,
-        level: "uyari",
-        field: "Kategori",
-        message: `"${product.name}" için kategori çözülemedi: "${product.categoryPath}"`,
-      });
+    // Ticimax'te bir ürün ortalama 5-6 kategoriye bağlı. İlki ana kategori
+    // sayılıyor (breadcrumb ondan kuruluyor), diğerleri ek bağ olarak duruyor.
+    const categoryIds: string[] = [];
+    for (const path of product.categoryPaths) {
+      const id = await resolveCategoryPath(
+        path,
+        categoryCache,
+        newCategories,
+        options.dryRun,
+      );
+      if (id) {
+        if (!categoryIds.includes(id)) categoryIds.push(id);
+      } else {
+        issues.push({
+          rowNumber: product.variants[0]?.rowNumber ?? 0,
+          level: "uyari",
+          field: "Kategori",
+          message: `"${product.name}" için kategori çözülemedi: "${path}"`,
+        });
+      }
     }
 
     // --- varyant seçeneklerini çöz -------------------------------------
@@ -294,11 +313,12 @@ export async function runImport(
         productId = record.id;
       }
 
-      if (categoryId && !categoryId.startsWith("yeni:")) {
+      for (const [position, categoryId] of categoryIds.entries()) {
+        if (categoryId.startsWith("yeni:")) continue;
         await prisma.productCategory.upsert({
           where: { productId_categoryId: { productId, categoryId } },
-          update: {},
-          create: { productId, categoryId, isPrimary: true },
+          update: { isPrimary: position === 0 },
+          create: { productId, categoryId, isPrimary: position === 0 },
         });
       }
     }

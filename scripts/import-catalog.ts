@@ -93,7 +93,7 @@ async function main() {
   const totalStock = parsed.rows.reduce((sum, row) => sum + row.stock, 0);
   const priceSum = parsed.rows.reduce((sum, row) => sum + row.priceKurus, 0);
   const withoutImage = grouped.products.filter((p) => p.imageUrls.length === 0);
-  const withoutCategory = grouped.products.filter((p) => !p.categoryPath);
+  const withoutCategory = grouped.products.filter((p) => p.categoryPaths.length === 0);
 
   console.log(`\n${"─".repeat(58)}`);
   console.log(apply ? "AKTARIM RAPORU" : "KURU ÇALIŞMA RAPORU (hiçbir şey yazılmadı)");

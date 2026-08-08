@@ -64,7 +64,8 @@ export interface GroupedProduct {
   slug?: string;
   shortDesc?: string;
   description?: string;
-  categoryPath?: string;
+  /** İlk eleman ana kategori sayılır (breadcrumb ondan kurulur). */
+  categoryPaths: string[];
   isActive: boolean;
   imageUrls: string[];
   variants: CatalogRow[];

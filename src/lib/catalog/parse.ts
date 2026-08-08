@@ -219,7 +219,7 @@ export function groupRows(rows: CatalogRow[]): {
         slug: row.slug,
         shortDesc: row.shortDesc,
         description: row.description,
-        categoryPath: row.categoryPath,
+        categoryPaths: row.categoryPath ? [row.categoryPath] : [],
         isActive: row.isActive,
         imageUrls: [],
         variants: [],

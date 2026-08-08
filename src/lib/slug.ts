@@ -36,6 +36,42 @@ export function slugify(input: string): string {
 }
 
 /**
+ * Kategori slug'ı için aday listesi üretir.
+ *
+ * Neden gerekli: "Bambu Patik" hem Kadın hem Erkek altında var. Düz
+ * benzersizleştirme biri için "bambu-patik", diğeri için "bambu-patik-2"
+ * üretiyor — ikisi de hangi bölüme ait olduğunu söylemiyor ve "-2" adresi
+ * anlamsız. Çakışma olduğunda üst kategoriyle önekliyoruz:
+ * "kadin-bambu-patik" / "erkek-bambu-patik".
+ *
+ * @param ancestors kökten aşağıya üst kategori adları
+ */
+export function categorySlugCandidates(
+  name: string,
+  ancestors: string[],
+): string[] {
+  const base = slugify(name);
+  const candidates = [base];
+
+  // En üstteki ata en ayırt edici olan: "Kadın Çorapları" -> "kadin-coraplari"
+  // Sadece ilk kelimesini alıyoruz ki adres uzayıp okunmaz hale gelmesin.
+  const root = ancestors[0];
+  if (root) {
+    const rootWord = slugify(root).split("-")[0];
+    if (rootWord && !base.startsWith(`${rootWord}-`)) {
+      candidates.push(`${rootWord}-${base}`);
+    }
+  }
+
+  // Hâlâ çakışıyorsa tam yol
+  if (ancestors.length > 0) {
+    candidates.push(slugify([...ancestors, name].join(" ")));
+  }
+
+  return [...new Set(candidates)];
+}
+
+/**
  * Slug'ı benzersiz hale getirir. `exists` verilen slug'ın kullanımda olup
  * olmadığını söyler; çakışma varsa sona -2, -3 ... eklenir.
  */
