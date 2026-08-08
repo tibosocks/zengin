@@ -62,3 +62,29 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* Yazdırma: sipariş fişi.
+   Panel kabuğu, yan menü ve düğmeler kâğıda basılmamalı — sadece
+   siparişin kendisi çıksın. */
+@media print {
+  aside,
+  header,
+  footer,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  /* Kenarlıklar yazıcıda gri lekeye dönüşüyor; inceltiyoruz */
+  * {
+    box-shadow: none !important;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+}
