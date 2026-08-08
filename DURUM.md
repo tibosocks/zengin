@@ -36,23 +36,34 @@ Marka: Zengin. Tibo/tibosocks bırakıldı, sadece veri kaynağı olarak kullan�
 - Excel içe/dışa aktarma: `/panel/urunler/aktar`
 - Aktarım **idempotent** — tekrar çalıştırmak kopya üretmez
 
-### Faz 3 — vitrin  🟡 kısmen
-- ✅ Üst menü (kategori ağacından), mobil çekmece, arama, footer
-- ✅ Anasayfa, kategori sayfası, ürün detay, yeni ürünler, arama
-- ❌ **Sepet ve sipariş formu henüz yok** — sıradaki iş
+### Faz 3 — vitrin  ✅
+- Üst menü (kategori ağacından), mobil çekmece, arama, footer, sepet rozeti
+- Anasayfa, kategori, ürün detay, yeni ürünler, arama
+- Sepet (çerezde varyant id + adet; fiyat çerezde TUTULMUYOR)
+- Sipariş formu ve "siparişiniz alındı" sayfası
+- Sipariş oluşturma tek transaction: stok kontrolü + rezervasyon birlikte,
+  kalem snapshot'ı, müşteri telefondan upsert, panel bildirimi
 - ❌ Sabit sayfalar (hakkımızda, iletişim, KVKK) yok
 
 ---
 
-## Şu an bekleyen tek engel: R2
+## Şu an bekleyen tek engel: R2 herkese açık adresi
 
-Ürün görselleri **henüz aktarılmadı**. Vitrinde gri kutular görünüyor.
+R2 **kuruldu ve çalışıyor** — bucket `zenginsocks`, kimlik bilgileri `.env`'de,
+dosya yükleme test edildi ve başarılı.
 
-Kullanıcının Cloudflare R2 kurup dört değeri iletmesi gerekiyor
-([SETUP.md](SETUP.md) adım 5):
-`Account ID`, `Access Key ID`, `Secret Access Key`, `Public URL`
+Tek sorun: herkese açık `pub-04b03e2e7ed64307bd8bec014f06e204.r2.dev`
+adresinden **okuma** henüz çalışmıyor. TCP bağlanıyor ama TLS el sıkışması
+yanıtsız — yeni açılan r2.dev alt alan adının sertifikası hazırlanmamış.
+Aynı hesabın S3 ucu sorunsuz çalışıyor, yani ağ/kimlik sorunu değil.
 
-Geldiğinde `.env`'e yazılıp şu komut çalıştırılacak (~12 dk, 625 görsel):
+Kontrol:
+```bash
+curl -s -o /dev/null -w "%{http_code}" https://pub-04b03e2e7ed64307bd8bec014f06e204.r2.dev/
+```
+`000` dönüyorsa hâlâ hazır değil. 200/404 dönerse hazır demektir.
+
+Hazır olunca görselleri indirmek için (~12 dk, 625 görsel):
 
 ```bash
 npx tsx scripts/import-ticimax.ts --uygula
@@ -102,6 +113,7 @@ düz Node'da bilerek hata fırlatıyor.
 | Postgres Public Access açık | Geliştirme için. Yayından önce kapatılmalı |
 | GitHub deposu public | `tibosocks/zengin`. Private yapılması önerildi |
 | "Kadın Penye Soket Puantiyeli" | İki varyantı da `Renk: Çok Renkli`; ikincisi (CRP613) aktarılmadı. Ticimax'te renk adları ayrılırsa gelir |
+| R2 token'ı hesap geneli yetkili | Sadece `zenginsocks` bucket'ına kısıtlı bir token daha güvenli olur |
 | iCloud kopya dosyaları | `~/Desktop` senkronlu; `"dosya 2.ts"` ikizleri derlemeyi bozuyor. `find . -name "* [0-9].*" -delete` ile temizlenir |
 
 ---
@@ -119,10 +131,11 @@ düz Node'da bilerek hata fırlatıyor.
 
 ## Sıradaki işler
 
-1. **R2 kurulumu + görsel aktarımı** (kullanıcı bekleniyor)
-2. **Sepet + sipariş formu** — Faz 3'ün kalanı
-3. **Sipariş paneli + bildirimler** (panel içi + e-posta) — Faz 4
-4. **Bayi girişi + iskontolu fiyat gösterimi** — Faz 5
+1. **Görsel aktarımı** — r2.dev sertifikası hazır olunca
+2. **Sipariş paneli** (`/panel/siparisler`) — liste, detay, durum değiştirme,
+   fiş yazdırma. Sipariş oluşuyor ama panelde görüntülenemiyor
+3. **Bildirimler** — panel içi zil + e-posta (Resend)
+4. **Bayi girişi + başvuru** — Faz 5
 5. Sabit sayfalar, SEO/sitemap, DNS geçişi — Faz 6
 
 ---
