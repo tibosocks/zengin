@@ -281,10 +281,15 @@ Sipariş detayında **"Siparişi PDF oluştur"** düğmesi; yeni sekmede A4 düz
   ekran önizlemesi de gerçek çıktıya benziyor. Grubun kendi yetki kontrolü
   var — dashboard düzeninin altında olmadığı için oradaki koruma kapsamıyor
 - Üstte müşteri bilgileri + tarih, altta ürün tablosu: **resim, ürün adı,
-  miktar, birim fiyat, toplam**. Görsel 96px — Ticimax çıktısındakinin
-  yaklaşık iki katı
+  miktar, birim fiyat, toplam**. Görsel 80px
 - `@page { size: A4; margin: 12mm }`, satırlar sayfa arasında bölünmüyor,
   çok sayfalı çıktıda tablo başlığı her sayfada tekrar ediyor
+- **Sayfa başına 10 ürün.** Satır yüksekliği `.satir { height: 97px }` ile
+  sabitlendi. Hesap: A4'te 12mm boşlukla kullanılabilir alan 1032px, tekrar
+  eden tablo başlığı 29px → 997px; 10×97=970 sığıyor, 11×97=1067 sığmıyor.
+  Ürün adı `line-clamp-2` ile iki satıra sınırlı, uzun adlar yüksekliği
+  kaçırmıyor. Tarayıcıda ölçülerek doğrulandı: ilk sayfa 8 satır (üstteki
+  müşteri bloğu 221px yer kaplıyor), sonraki her sayfa 10 satır
 
 **Gerçek PDF kütüphanesi kullanılmadı.** pdf-lib/pdfkit Türkçe için gömülü
 font dosyası ister (standart PDF fontları ş/ğ/ı/İ taşımıyor) ve WebP görselleri

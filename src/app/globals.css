@@ -105,6 +105,14 @@ input[type="number"] {
     break-inside: avoid;
   }
 
+  /* Satır yüksekliği sabit: A4'te 12mm kenar boşluğuyla kullanılabilir alan
+     ~1032px, tekrar eden tablo başlığı ~35px. 97px'lik satırdan tam 10 tane
+     sığıyor (10x97=970 ≤ 997, 11x97=1067 > 997). Ürün adı iki satırla
+     sınırlı olduğu için uzun adlar bu yüksekliği kaçırmıyor. */
+  .cikti .satir {
+    height: 97px;
+  }
+
   .cikti thead {
     display: table-header-group;
   }

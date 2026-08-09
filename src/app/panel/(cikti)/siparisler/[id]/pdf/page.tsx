@@ -85,7 +85,7 @@ export default async function OrderPdfPage({
       </div>
 
       {/* --- müşteri --------------------------------------------------- */}
-      <div className="mt-5 grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+      <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-1 text-xs">
         <Row label="Ad Soyad" value={order.customer.fullName} />
         <Row label="Telefon" value={formatPhone(order.customer.phone)} />
         <Row label="Firma" value={order.customer.companyName} />
@@ -102,16 +102,16 @@ export default async function OrderPdfPage({
       ) : null}
 
       {/* --- kalemler --------------------------------------------------- */}
-      <table className="mt-6 w-full border-collapse text-sm">
+      <table className="mt-5 w-full border-collapse text-xs">
         <thead>
           <tr className="border-y border-ink text-left">
-            <th className="w-[104px] px-2 py-2 font-medium">Resim</th>
-            <th className="px-2 py-2 font-medium">Ürün</th>
-            <th className="w-20 px-2 py-2 text-right font-medium">Miktar</th>
-            <th className="w-28 px-2 py-2 text-right font-medium">
+            <th className="w-[96px] px-2 py-1.5 font-medium">Resim</th>
+            <th className="px-2 py-1.5 font-medium">Ürün</th>
+            <th className="w-16 px-2 py-1.5 text-right font-medium">Miktar</th>
+            <th className="w-24 px-2 py-1.5 text-right font-medium">
               Birim Fiyat
             </th>
-            <th className="w-28 px-2 py-2 text-right font-medium">Toplam</th>
+            <th className="w-24 px-2 py-1.5 text-right font-medium">Toplam</th>
           </tr>
         </thead>
         <tbody>
@@ -119,36 +119,36 @@ export default async function OrderPdfPage({
             const imageUrl = item.variant?.product.images[0]?.url ?? null;
 
             return (
-              <tr key={item.id} className="border-b border-line align-middle">
+              <tr key={item.id} className="satir border-b border-line align-middle">
                 <td className="px-2 py-2">
-                  <div className="relative size-24 overflow-hidden rounded border border-line bg-surface-alt">
+                  <div className="relative size-20 overflow-hidden rounded border border-line bg-surface-alt">
                     {imageUrl ? (
                       <Image
                         src={imageUrl}
                         alt=""
                         fill
-                        sizes="96px"
+                        sizes="80px"
                         className="object-contain p-1"
                       />
                     ) : null}
                   </div>
                 </td>
-                <td className="px-2 py-2">
-                  <p className="font-medium">{item.productName}</p>
+                <td className="px-2 py-1.5">
+                  <p className="line-clamp-2 font-medium">{item.productName}</p>
                   {item.optionsText ? (
                     <p className="text-muted">{item.optionsText}</p>
                   ) : null}
                   {item.sku ? (
-                    <p className="text-xs text-muted">{item.sku}</p>
+                    <p className="text-[10px] text-muted">{item.sku}</p>
                   ) : null}
                 </td>
-                <td className="tnum px-2 py-2 text-right whitespace-nowrap">
+                <td className="tnum px-2 py-1.5 text-right whitespace-nowrap">
                   {item.quantity} düzine
                 </td>
-                <td className="tnum px-2 py-2 text-right whitespace-nowrap">
+                <td className="tnum px-2 py-1.5 text-right whitespace-nowrap">
                   {formatKurus(toKurus(item.unitPrice))}
                 </td>
-                <td className="tnum px-2 py-2 text-right font-medium whitespace-nowrap">
+                <td className="tnum px-2 py-1.5 text-right font-medium whitespace-nowrap">
                   {formatKurus(toKurus(item.lineTotal))}
                 </td>
               </tr>
