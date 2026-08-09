@@ -36,9 +36,11 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 
 export function PanelShell({
   session,
+  unreadCount,
   children,
 }: {
   session: AdminSession;
+  unreadCount: number;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -138,10 +140,19 @@ export function PanelShell({
 
           <Link
             href="/panel/bildirimler"
-            aria-label="Bildirimler"
+            aria-label={
+              unreadCount > 0
+                ? `Bildirimler — ${unreadCount} okunmamış`
+                : "Bildirimler"
+            }
             className="relative rounded p-2 text-ink-soft hover:bg-line-soft"
           >
             <Bell className="size-5" strokeWidth={1.75} />
+            {unreadCount > 0 ? (
+              <span className="tnum absolute top-0.5 right-0.5 flex min-w-4 items-center justify-center rounded-full bg-warn px-1 text-[10px] font-medium text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            ) : null}
           </Link>
 
           <Link
