@@ -1,6 +1,6 @@
 # Durum — nerede kaldık
 
-Son güncelleme: 2026-08-08
+Son güncelleme: 2026-08-09
 
 Bu dosya projenin anlık durumunu tutar. Yeni bir oturum açıldığında önce
 bunu okuyun; [PLAN.md](PLAN.md) neyi neden yaptığımızı, [SETUP.md](SETUP.md)
@@ -230,7 +230,7 @@ Bu kural iki kez derlemeyi kırdı.
 
 | Konu | Durum |
 |---|---|
-| Yönetici parolası `zengin2026!` | Geçici ve sohbette açıkta. **Panel → Ayarlar → Parolamı değiştir** ile değiştirilmeli |
+| ~~Yönetici parolası `zengin2026!`~~ | ✅ 2026-08-09'da kullanıcı tarafından değiştirildi |
 | Postgres Public Access açık | Geliştirme için. Yayından önce kapatılmalı |
 | GitHub deposu public | `tibosocks/zengin`. Private yapılması önerildi |
 | "Kadın Penye Soket Puantiyeli" | İki varyantı da `Renk: Çok Renkli`; ikincisi (CRP613) aktarılmadı. Ticimax'te renk adları ayrılırsa gelir |
@@ -241,8 +241,9 @@ Bu kural iki kez derlemeyi kırdı.
 
 ## Erişimler
 
-- **Panel:** `/panel` · `admin@zenginsocks.com` / `zengin2026!`
-- **Canlı:** https://zengin-production.up.railway.app
+- **Panel:** https://zenginsocks.com/panel · `admin@zenginsocks.com`
+  (parola 2026-08-09'da değiştirildi, kullanıcıda)
+- **Canlı:** https://zenginsocks.com (Railway: zengin-production.up.railway.app)
 - **Depo:** github.com/tibosocks/zengin (kullanıcı push ediyor, bu makinede
   git kimlik doğrulaması yok)
 - **Railway:** proje `appealing-liberation`, servisler `zengin` + `Postgres`
@@ -252,9 +253,12 @@ Bu kural iki kez derlemeyi kırdı.
 
 ## Sıradaki işler
 
-1. **Üç sabit sayfanın içeriğini oluştur** — kod hazır, kayıtlar yok.
-   `scripts/sabit-sayfalar.ts` çalıştırılmalı; DB'ye dışarıdan erişim
-   kapatıldığı için buradan çalıştırılamıyor (aşağıya bakın)
+1. **İLETİŞİM BİLGİLERİ SAHTE — acil.** Ayarlar'daki değerler seed'den kalma:
+   `contactPhone` = "0212 555 44 33", `whatsappNumber` = "905321112233",
+   `contactAddress` boş. Bu numaralar **canlıda görünüyor**: iletişim
+   sayfasında ve her ürün sayfasındaki "WhatsApp'tan sipariş ver" düğmesinde.
+   Panel → Ayarlar'dan düzeltip `npx tsx --env-file=.env
+   scripts/sabit-sayfalar.ts --degistir` ile iletişim sayfasını tazeleyin
 2. **KVKK metnindeki [köşeli parantezli] alanları doldur** — şirket unvanı,
    adres, VKN, e-posta. Yayına almadan önce hukuk kontrolü şart
 3. **E-posta bildirimi** — Resend kurulumu bekliyor (SETUP.md adım 7).
