@@ -282,6 +282,19 @@ stock: { lte: 0 } } }` yazıyordu — yani "TÜM varyantları bitmiş ürünler"
 okunmuyordu. Düzeltildi. Şu an 0 sonuç dönüyor ama bu doğru — veride 1-5
 arası stoklu varyant yok, stoklar ya 0 ya da yüzlerce.
 
+**Müşteri parolası panelden konabiliyor.** Panelden açılan müşterinin
+parolası olmuyordu, `/bayi-girisi`'ne giremiyordu. Tek alternatif müşterinin
+`/bayi-basvurusu`'ndan kendi kaydolmasıydı ama o akış kaydı
+`onay_bekliyor`'a düşürüp yöneticinin verdiği aktifliği geri alıyor.
+Eklenenler: `setCustomerPassword` eylemi, müşteri kartında **Bayi girişi**
+bölümü (parolası var/yok bilgisi + belirle/değiştir), yeni müşteri formunda
+isteğe bağlı parola alanı. Parola kutusu bilerek `type="text"` — yönetici
+müşteriye iletebilsin diye; veritabanında bcrypt ile saklanıyor.
+
+`dealerLogin` hata mesajı bilerek genel bırakıldı ("Telefon veya parola
+hatalı"). "Bu hesabın parolası yok" demek, numaranın kayıtlı olduğunu
+sızdırırdı.
+
 **Panelden müşteri oluşturma eklendi** — `/panel/musteriler/yeni`.
 `createCustomer` telefonu normalleştirip tekilliği koruyor (aynı numara varsa
 mevcut kayda yönlendiriyor), bayi seçilince iskonto kutusuna Ayarlar'daki

@@ -10,6 +10,7 @@ import type { CustomerStatus } from "@/generated/prisma/client";
 import {
   approveDealer,
   saveCustomerNote,
+  setCustomerPassword,
   updateCustomerStatus,
   updateDiscount,
 } from "@/lib/actions/customers";
@@ -25,11 +26,14 @@ export function CustomerSidePanel({
   status,
   discountBp,
   note,
+  hasPassword,
 }: {
   customerId: string;
   status: CustomerStatus;
   discountBp: number;
   note: string;
+  /** Müşterinin bayi girişi parolası var mı */
+  hasPassword: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -38,6 +42,7 @@ export function CustomerSidePanel({
   );
   const [reason, setReason] = useState("");
   const [noteValue, setNoteValue] = useState(note);
+  const [password, setPassword] = useState("");
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(
     null,
   );
@@ -147,6 +152,49 @@ export function CustomerSidePanel({
             </div>
           </>
         )}
+
+        <div className="border-t border-line pt-4">
+          <p className="mb-2 text-sm font-medium text-ink-soft">Bayi girişi</p>
+          <p className="mb-3 text-xs text-muted">
+            {hasPassword
+              ? "Müşterinin parolası var; telefonuyla giriş yapabiliyor. Buradan yeni parola belirlerseniz eskisi geçersiz olur."
+              : "Bu müşterinin parolası yok, giriş yapamaz. Bir parola belirleyip müşteriye iletin."}
+          </p>
+          <Field
+            label={hasPassword ? "Yeni parola" : "Parola"}
+            htmlFor="customerPassword"
+            hint="en az 8 karakter"
+          >
+            <Input
+              id="customerPassword"
+              type="text"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="örn. Zengin2026bayi"
+              autoComplete="off"
+            />
+          </Field>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-2 w-full"
+            disabled={isPending || password.length < 8}
+            onClick={() =>
+              startTransition(async () => {
+                const result = await setCustomerPassword(customerId, password);
+                notify(result);
+                if (result.ok) setPassword("");
+              })
+            }
+          >
+            {hasPassword ? "Parolayı değiştir" : "Parolayı belirle"}
+          </Button>
+          <p className="mt-2 text-xs text-muted">
+            Parola gizli değil, bilerek görünür yazılıyor — müşteriye
+            iletebilmeniz için. Sistemde şifrelenmiş saklanır, bir daha
+            görüntülenemez.
+          </p>
+        </div>
 
         <div className="border-t border-line pt-4">
           <Field label="İç not" htmlFor="note" hint="müşteri görmez">

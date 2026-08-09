@@ -122,6 +122,21 @@ export function NewCustomerForm({ defaultDiscount }: { defaultDiscount: string }
             <Input id="taxNo" name="taxNo" maxLength={40} />
           </Field>
 
+          <Field
+            label="Bayi girişi parolası"
+            htmlFor="password"
+            hint="isteğe bağlı · en az 8 karakter"
+            className="sm:col-span-2"
+          >
+            <Input
+              id="password"
+              name="password"
+              type="text"
+              autoComplete="off"
+              placeholder="Boş bırakırsanız müşteri siteye giriş yapamaz"
+            />
+          </Field>
+
           <Field label="Not" htmlFor="note" className="sm:col-span-2">
             <Textarea id="note" name="note" maxLength={1000} />
           </Field>
@@ -131,8 +146,8 @@ export function NewCustomerForm({ defaultDiscount }: { defaultDiscount: string }
       <div className="rounded-md bg-info-soft px-4 py-3 text-sm text-info">
         İskonto <strong>KDV hariç</strong> fiyattan düşülür, KDV indirimli tutar
         üzerinden hesaplanır. Panelden açılan müşteri onay beklemez, doğrudan
-        aktif olur. Parola konmaz — müşteri bayi girişinden kendi parolasını
-        oluşturabilir.
+        aktif olur. Parolayı şimdi girmezseniz müşteri kartından sonradan da
+        belirleyebilirsiniz.
       </div>
 
       <div className="flex justify-end">

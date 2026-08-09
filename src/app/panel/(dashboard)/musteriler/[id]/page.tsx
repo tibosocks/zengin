@@ -171,6 +171,7 @@ export default async function CustomerDetailPage({
             status={customer.status}
             discountBp={discountBp}
             note={customer.note ?? ""}
+            hasPassword={customer.passwordHash !== null}
           />
 
           <Card>

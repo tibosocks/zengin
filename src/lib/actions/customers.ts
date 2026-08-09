@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import type { CustomerStatus } from "@/generated/prisma/client";
-import { requireAdmin } from "@/lib/auth";
+import { hashPassword, requireAdmin } from "@/lib/auth";
 import { normalizePhone } from "@/lib/phone";
 import { kurusToDecimalString, toBasisPoints } from "@/lib/price";
 import { prisma } from "@/lib/prisma";
@@ -182,14 +182,23 @@ const newCustomerSchema = z.object({
   type: z.enum(["bireysel", "bayi"]).default("bireysel"),
   discountPercent: percentText.optional(),
   note: z.string().trim().max(1000).optional(),
+  password: z
+    .string()
+    .max(200)
+    .refine((v) => v === "" || v.length >= 8, {
+      message: "Parola en az 8 karakter olmalı",
+    })
+    .optional(),
 });
 
 /**
  * Panelden elle müşteri açar.
  *
  * Bayi başvurusundan farkı: yönetici açtığı için onay kuyruğuna girmiyor,
- * doğrudan `aktif` oluyor. Parola konmuyor — müşteri isterse bayi girişinden
- * kendi parolasını oluşturur; buradaki kayıt sipariş ve iskonto için yeterli.
+ * doğrudan `aktif` oluyor.
+ *
+ * Parola isteğe bağlı. Verilmezse müşteri `/bayi-girisi`'ne giremez —
+ * sonradan müşteri kartından `setCustomerPassword` ile konabilir.
  */
 export async function createCustomer(
   formData: FormData,
@@ -205,6 +214,7 @@ export async function createCustomer(
     type: (formData.get("type") as string) || "bireysel",
     discountPercent: (formData.get("discountPercent") as string) || undefined,
     note: (formData.get("note") as string) || undefined,
+    password: (formData.get("password") as string) || undefined,
   });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message };
@@ -265,6 +275,7 @@ export async function createCustomer(
       status: "aktif",
       discountPercent: kurusToDecimalString(percentBp),
       note: data.note || null,
+      passwordHash: data.password ? await hashPassword(data.password) : null,
     },
   });
 
@@ -288,5 +299,51 @@ export async function createCustomer(
     ok: true,
     message: `"${customer.fullName}" oluşturuldu.`,
     customerId: customer.id,
+  };
+}
+
+/**
+ * Müşteriye panelden parola belirler (veya var olanı sıfırlar).
+ *
+ * Panelden açılan müşterinin parolası olmuyor, `/bayi-girisi`'ne giremiyor.
+ * Tek alternatif müşterinin `/bayi-basvurusu`'ndan kendi kaydolması ama o
+ * akış kaydı `onay_bekliyor`'a düşürüp yöneticinin verdiği aktifliği geri
+ * alıyor. Bu yüzden parolayı yönetici koyabilmeli.
+ *
+ * Parola hiçbir yere düz metin yazılmıyor — denetim kaydına da sadece
+ * "parola belirlendi" bilgisi düşüyor.
+ */
+export async function setCustomerPassword(
+  customerId: string,
+  password: string,
+): Promise<CustomerResult> {
+  await requireAdmin();
+
+  if (typeof password !== "string" || password.length < 8) {
+    return { ok: false, error: "Parola en az 8 karakter olmalı." };
+  }
+  if (password.length > 200) {
+    return { ok: false, error: "Parola çok uzun." };
+  }
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: { id: true, status: true },
+  });
+  if (!customer) return { ok: false, error: "Müşteri bulunamadı." };
+
+  await prisma.customer.update({
+    where: { id: customerId },
+    data: { passwordHash: await hashPassword(password) },
+  });
+
+  revalidatePath(`/panel/musteriler/${customerId}`);
+
+  return {
+    ok: true,
+    message:
+      customer.status === "aktif"
+        ? "Parola belirlendi. Müşteri telefonu ve bu parolayla giriş yapabilir."
+        : "Parola belirlendi. Hesap aktif olmadığı için müşteri henüz giriş yapamaz.",
   };
 }
