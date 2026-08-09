@@ -270,6 +270,31 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Panel telefona kurulabiliyor (PWA)  ✅ (2026-08-09)
+
+`public/panel.webmanifest` + panel düzeninde `appleWebApp` metadata'sı.
+Kurulum adımları SETUP.md'de.
+
+- Manifest **yalnızca panel sayfalarına** bağlı. Kök düzene koysaydık
+  müşteriler vitrini kurduğunda `start_url` onları panele düşürürdü
+- `scope: "/panel"` — uygulamadan vitrine geçilirse Safari'de açılıyor
+- Next sadece modern `mobile-web-app-capable` etiketini basıyor; iOS 15.4
+  öncesi için `apple-mobile-web-app-capable` elle eklendi (`metadata.other`)
+- `viewportFit: "cover"` bilerek **yok** — çentikli ekranlarda içerik durum
+  çubuğunun altına girip panel üst barını gizliyordu
+- Panele `robots: noindex` eklendi (zaten robots.txt'te kapalıydı, artık
+  sayfa düzeyinde de)
+
+**İkonlar `build-brand-assets.py`'de üretiliyor**, elle eklenmedi:
+- `panel-icon-180/192/512.png` — koyu zemin, beyaz Z. Vitrinin beyaz zeminli
+  simgesinden ayırt edilsin diye ters renk
+- Kaynak "Z"nin alfası en fazla 209 olduğu için koyu zeminde harf gri
+  çıkıyordu; alfa kendi tepe değerine göre normalize ediliyor
+- `apple-touch-icon.png` artık tam opak (`convert("RGB")`). Yarı saydam kenar
+  pikselleri iOS'ta siyaha karşı birleşip Z'nin etrafında koyu hâle bırakıyordu
+
+---
+
 ## Sipariş PDF çıktısı  ✅ (2026-08-09)
 
 Sipariş detayında **"Siparişi PDF oluştur"** düğmesi; yeni sekmede A4 düzenli

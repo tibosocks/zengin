@@ -241,6 +241,32 @@ sipariş bildirimleri spam klasörüne düşer ve siparişi kaçırırsınız.
 
 ---
 
+## Paneli telefona uygulama olarak kurma
+
+Panel PWA olarak kurulabilir; ayrı bir uygulama indirmeye gerek yok.
+
+**iPhone / iPad (Safari)**
+
+1. Safari'de `https://zenginsocks.com/panel` adresini açın ve giriş yapın
+2. Alttaki **Paylaş** düğmesi (kare + yukarı ok)
+3. **Ana Ekrana Ekle**
+4. Ad "Zengin Panel" gelir, **Ekle**
+
+**Android (Chrome)** — aynı adreste ⋮ menüsü → **Uygulamayı yükle**.
+
+Bilinmesi gerekenler:
+
+- **Safari'de kullanmak şart.** Chrome veya başka bir tarayıcının iOS
+  sürümünden "Ana Ekrana Ekle" yapılırsa uygulama gibi açılmaz.
+- **Bir kez daha giriş yapmanız gerekebilir.** iOS'ta ana ekran uygulaması
+  Safari'den ayrı bir çerez alanı kullanıyor. Oturum 30 gün açık kalıyor.
+- Simge koyu zeminli beyaz "Z" — vitrinin beyaz zeminli simgesinden ayrılsın
+  diye. Vitrini de kurarsanız ikisini karıştırmazsınız.
+- Uygulama içinden "Siteyi gör" bağlantısına basarsanız vitrin Safari'de
+  açılır; manifest'in kapsamı `/panel` ile sınırlı, bu bilinçli.
+
+---
+
 ## Yerel geliştirme
 
 `.env.example` dosyasını `.env` olarak kopyalayıp doldurun:

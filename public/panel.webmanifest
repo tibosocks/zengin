@@ -1,0 +1,27 @@
+{
+  "name": "Zengin Socks Yönetim Paneli",
+  "short_name": "Zengin Panel",
+  "description": "Sipariş, ürün, stok ve müşteri yönetimi.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "/panel",
+  "scope": "/panel",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#101012",
+  "icons": [
+    {
+      "src": "/brand/panel-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/panel-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

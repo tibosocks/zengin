@@ -9,7 +9,8 @@ Kaynaklar (resimler/):
   logo.svg / logo.png            kırpılmış, saydam, siyah yazı
   logo-white.png                 koyu zemin için beyaz yazı
   favicon.ico + favicon-*.png    tarayıcı sekmesi ikonları
-  apple-touch-icon.png           iOS ana ekran ikonu
+  apple-touch-icon.png           iOS ana ekran ikonu (vitrin)
+  panel-icon-*.png               yönetim paneli uygulama ikonu (koyu zemin)
   og-image.png                   sosyal medya paylaşım görseli (1200x630)
 
 Çalıştırma:  python3 scripts/build-brand-assets.py
@@ -156,11 +157,33 @@ def main() -> None:
     for size in ico_sizes:
         save_png(canvas.resize((size, size), Image.LANCZOS), OUT / f"favicon-{size}.png")
 
-    # apple-touch-icon saydam olamaz, beyaz zemin şart
+    # apple-touch-icon saydam olamaz, beyaz zemin şart.
+    # convert("RGB") şart: yarı saydam kenar pikselleri kalırsa iOS onları
+    # siyaha karşı birleştirip Z'nin etrafında koyu bir hâle bırakıyor.
     apple = Image.new("RGBA", (180, 180), (255, 255, 255, 255))
     icon = canvas.resize((150, 150), Image.LANCZOS)
     apple.paste(icon, (15, 15), icon)
-    save_png(apple, PUBLIC / "apple-touch-icon.png")
+    save_png(apple.convert("RGB").convert("RGBA"), PUBLIC / "apple-touch-icon.png")
+
+    # --- panel uygulaması ikonu ---------------------------------------
+    # Yönetim paneli ana ekrana eklendiğinde vitrinden ayırt edilebilsin diye
+    # ters renk: koyu zemin, beyaz Z. iOS için tamamen opak.
+    # make_white alfayı olduğu gibi taşıyor; kaynak "Z" gri çizildiği için
+    # alfası en fazla ~209. Koyu zemine beyaz basınca harf gri çıkıyordu.
+    # Gövde tam opak olsun diye alfayı kendi tepe değerine göre ölçekliyoruz;
+    # kenar yumuşatması oranını koruyor.
+    white_z = make_white(canvas)
+    peak = max(white_z.getchannel("A").getextrema()[1], 1)
+    white_z.putalpha(
+        white_z.getchannel("A").point(lambda a: min(255, round(a * 255 / peak)))
+    )
+
+    for size in (180, 192, 512):
+        pad = round(size * 0.18)
+        panel = Image.new("RGBA", (size, size), (16, 16, 18, 255))
+        inner = white_z.resize((size - pad * 2, size - pad * 2), Image.LANCZOS)
+        panel.paste(inner, (pad, pad), inner)
+        save_png(panel.convert("RGB").convert("RGBA"), OUT / f"panel-icon-{size}.png")
 
     ico_path = PUBLIC / "favicon.ico"
     canvas.resize((256, 256), Image.LANCZOS).save(
