@@ -110,6 +110,9 @@ async function main() {
     if (report.imagesFailed > 0) {
       console.log(`  Başarısız görsel     ${report.imagesFailed}`);
     }
+    if (report.failedProducts > 0) {
+      console.log(`  ATLANAN ÜRÜN         ${report.failedProducts}  (tekrar çalıştırın)`);
+    }
   }
   console.log("─".repeat(58));
   console.log("  KARŞILAŞTIRMA — Ticimax ile tutuyor mu:");

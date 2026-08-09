@@ -18,7 +18,21 @@ function createClient(): PrismaClient {
   }
 
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString }),
+    adapter: new PrismaPg({
+      connectionString,
+
+      // Zaman aşımları şart. Railway'in genel TCP proxy'si boşta kalan
+      // bağlantıyı sessizce düşürüyor; varsayılan ayarlarla sorgu sonsuza
+      // kadar bekliyor, hata bile fırlatmıyor. Uzun süren aktarımlar
+      // böyle saatlerce asılı kaldı.
+      connectionTimeoutMillis: 15_000,
+      idleTimeoutMillis: 30_000,
+      statement_timeout: 60_000,
+      query_timeout: 60_000,
+      // Ölü bağlantıyı erken fark etmek için TCP keepalive
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10_000,
+    }),
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 }

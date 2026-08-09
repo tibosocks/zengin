@@ -24,6 +24,8 @@ export interface ImportReport {
   applied: boolean;
   imagesDownloaded: number;
   imagesFailed: number;
+  /** Hata yüzünden atlanan ürün sayısı; tekrar çalıştırınca denenirler. */
+  failedProducts: number;
 }
 
 /** "Kadın Çorapları > Kadın Patik Çorap" -> ["Kadın Çorapları", "Kadın Patik Çorap"] */
@@ -208,6 +210,7 @@ export async function runImport(
 
   let imagesDownloaded = 0;
   let imagesFailed = 0;
+  let failedProducts = 0;
 
   const brand = await prisma.brand.findFirst({ select: { id: true } });
 
@@ -215,6 +218,11 @@ export async function runImport(
     options.onProgress?.(
       `[${index + 1}/${products.length}] ${product.name}`,
     );
+
+    // Tek bir ürünün hatası tüm aktarımı öldürmemeli. 200+ ürünlük bir
+    // aktarım uzak veritabanına dakikalarca sorgu atıyor; arada bir
+    // bağlantı düşmesi normal ve tekrar denenebilir bir durum.
+    try {
 
     // --- ürünü bul -----------------------------------------------------
     const slugCandidate = product.slug ?? slugify(product.name);
@@ -478,6 +486,17 @@ export async function runImport(
         }
       }
     }
+    } catch (error) {
+      failedProducts += 1;
+      issues.push({
+        rowNumber: product.variants[0]?.rowNumber ?? 0,
+        level: "hata",
+        message:
+          `"${product.name}" aktarılamadı: ` +
+          (error instanceof Error ? error.message : "bilinmeyen hata") +
+          ". Aktarımı tekrar çalıştırdığınızda bu ürün yeniden denenecek.",
+      });
+    }
   }
 
   return {
@@ -491,5 +510,6 @@ export async function runImport(
     applied: !options.dryRun,
     imagesDownloaded,
     imagesFailed,
+    failedProducts,
   };
 }

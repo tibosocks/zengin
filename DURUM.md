@@ -36,6 +36,15 @@ Marka: Zengin. Tibo/tibosocks bırakıldı, sadece veri kaynağı olarak kullan�
 - Excel içe/dışa aktarma: `/panel/urunler/aktar`
 - Aktarım **idempotent** — tekrar çalıştırmak kopya üretmez
 
+### Faz 4 — sipariş yönetimi  ✅
+- `/panel/siparisler` — durum sekmeleri, arama, sayfalama
+- `/panel/siparisler/[id]` — kalemler, indirim dökümü, müşteri kartı,
+  durum geçmişi, fiş yazdırma
+- Durum geçişlerinin stoğa etkisi tek modelde (`src/lib/order-status.ts`):
+  rezerve / düşüldü / serbest. Geri yönlü geçişler de doğru çalışıyor
+- `/panel/musteriler` — satır içi iskonto düzenleme, bayi onay kuyruğu
+- `/panel/musteriler/[id]` — sipariş geçmişi, iskonto denetim kaydı
+
 ### Faz 3 — vitrin  ✅
 - Üst menü (kategori ağacından), mobil çekmece, arama, footer, sepet rozeti
 - Anasayfa, kategori, ürün detay, yeni ürünler, arama
@@ -47,29 +56,40 @@ Marka: Zengin. Tibo/tibosocks bırakıldı, sadece veri kaynağı olarak kullan�
 
 ---
 
-## Şu an bekleyen tek engel: R2 herkese açık adresi
+## Görseller — tamam ✅
 
-R2 **kuruldu ve çalışıyor** — bucket `zenginsocks`, kimlik bilgileri `.env`'de,
-dosya yükleme test edildi ve başarılı.
+561 görsel R2'ye aktarıldı, 222 ürünün tamamının görseli var. Her görselin
+`sourceUrl`'i kayıtlı, aktarım tekrar çalıştırılabilir.
 
-Tek sorun: herkese açık `pub-04b03e2e7ed64307bd8bec014f06e204.r2.dev`
-adresinden **okuma** henüz çalışmıyor. TCP bağlanıyor ama TLS el sıkışması
-yanıtsız — yeni açılan r2.dev alt alan adının sertifikası hazırlanmamış.
-Aynı hesabın S3 ucu sorunsuz çalışıyor, yani ağ/kimlik sorunu değil.
+**Doğrulanmayan tek şey:** görsellerin tarayıcıda açılması. Geliştirme
+ortamının ağ filtresi `r2.dev` alan adına izin vermiyor, bu yüzden buradan
+render edilemiyor. Kullanıcının kendi tarayıcısında kontrol etmesi gerekiyor.
 
-Kontrol:
-```bash
-curl -s -o /dev/null -w "%{http_code}" https://pub-04b03e2e7ed64307bd8bec014f06e204.r2.dev/
-```
-`000` dönüyorsa hâlâ hazır değil. 200/404 dönerse hazır demektir.
+`r2.dev` üretim için Cloudflare'in kendi uyarısıyla önerilmiyor (hız sınırlı,
+önbellek yok). DNS Cloudflare'e taşındığında `cdn.zenginsocks.com` bağlanmalı
+ve kayıtlı adresler tek SQL güncellemesiyle çevrilmeli:
 
-Hazır olunca görselleri indirmek için (~12 dk, 625 görsel):
-
-```bash
-npx tsx scripts/import-ticimax.ts --uygula
+```sql
+UPDATE "ProductImage" SET url = replace(url,
+  'https://pub-04b03e2e7ed64307bd8bec014f06e204.r2.dev',
+  'https://cdn.zenginsocks.com');
 ```
 
-Ürünlere dokunmaz, sadece eksik görselleri indirir.
+---
+
+## Railway eski sürümü çalıştırıyor ⚠️
+
+GitHub'da her şey güncel ama Railway **Faz 1 sürümünde takılı**. Rota
+testiyle doğrulandı: `/api/panel/upload` 401 (var), `/yeni-urunler` 404 (yok).
+
+Railway'de "Redeploy" en son commit'i çekmez, aynı kaynak anlık görüntüsünü
+yeniden derler. Çözüm servis → Settings → Source:
+- Branch `main` seçili mi
+- **Wait for CI / Check Suites kapalı olmalı** (depoda CI yok, açıksa
+  sonsuza kadar bekler ve hiç deploy etmez)
+- Auto Deploy açık mı
+
+İşe yaramazsa GitHub bağlantısını kaldırıp yeniden bağlamak webhook'u sıfırlar.
 
 ---
 
@@ -98,6 +118,14 @@ Modül yüklenirken oluşturulursa `next build` DATABASE_URL olmadan çöküyor.
 düz Node'da bilerek hata fırlatıyor.
 
 **Next 16'da `middleware` değil `proxy`.** Dosya `src/proxy.ts`.
+
+**pg havuzunda zaman aşımı ŞART.** Railway'in genel proxy'si boşta kalan
+bağlantıyı sessizce düşürüyor; zaman aşımı yoksa sorgu sonsuza kadar bekler
+ve hata bile fırlatmaz. Bir aktarım bu yüzden 3 saat asılı kaldı.
+`src/lib/prisma.ts` içinde statement/query/connection timeout + keepAlive var.
+
+**Uzun aktarımlarda çıktıyı `| tail` ile borulamayın** — tampon yüzünden
+ilerleme görünmez olur. Log dosyasına yazıp `tail -f` ile izleyin.
 
 **Tükenen varyant gizlenmez, pasif gösterilir** ve seçime göre bağlamsaldır.
 
@@ -131,11 +159,13 @@ düz Node'da bilerek hata fırlatıyor.
 
 ## Sıradaki işler
 
-1. **Görsel aktarımı** — r2.dev sertifikası hazır olunca
-2. **Sipariş paneli** (`/panel/siparisler`) — liste, detay, durum değiştirme,
-   fiş yazdırma. Sipariş oluşuyor ama panelde görüntülenemiyor
-3. **Bildirimler** — panel içi zil + e-posta (Resend)
-4. **Bayi girişi + başvuru** — Faz 5
+1. **Railway deploy'unu düzelt** (kullanıcı) — her şey yerelde çalışıyor,
+   canlıya çıkmıyor
+2. **Bayi girişi + başvuru** — Faz 5. Fiyat altyapısı hazır, eksik olan
+   giriş/kayıt ekranları ve "Hesabım"
+3. **Bildirimler** — panel içi zil (`/panel/bildirimler` şu an 404) +
+   e-posta (Resend)
+4. **Ayarlar ekranı** (`/panel/ayarlar` şu an 404)
 5. Sabit sayfalar, SEO/sitemap, DNS geçişi — Faz 6
 
 ---
