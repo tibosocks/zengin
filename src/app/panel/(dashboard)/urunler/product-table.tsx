@@ -169,7 +169,6 @@ export function ProductTable({
                               width={40}
                               height={40}
                               className="size-10 object-cover"
-                              unoptimized
                             />
                           ) : null}
                         </div>

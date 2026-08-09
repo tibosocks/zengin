@@ -240,7 +240,6 @@ function ImageTile({
             fill
             sizes="160px"
             className="object-cover"
-            unoptimized
           />
         </button>
 

@@ -56,7 +56,6 @@ export function CartTable({ cart }: { cart: CartSummary }) {
                   fill
                   sizes="80px"
                   className="object-cover"
-                  unoptimized
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-muted">

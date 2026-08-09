@@ -270,6 +270,41 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Görsel yavaşlığı  ✅ (2026-08-09)
+
+Yeni bir cihazdan ilk girişte görseller çok yavaş yükleniyordu. Ölçüm:
+
+| | |
+|---|---|
+| Depolanan görsel | **1600×1600**, 100–180 KB |
+| Kartta gösterilen | ~250–300 px (25vw) |
+| Ana sayfa toplamı | **0.80 MB / 8 görsel** |
+| Kaynak | `r2.dev` — kenar önbelleği yok, hız sınırlı |
+
+Sebep: **beş bileşende de `unoptimized` vardı**, yani tarayıcı 250 piksellik
+kutu için 1600 piksellik dosyayı indiriyordu. `unoptimized` zorunluluktan
+konmuştu — `next.config.ts`'te `images.remotePatterns` tanımlı olmadan
+`next/image` uzak adresi optimize etmeyi reddediyor.
+
+Yapılan: `remotePatterns` eklendi (adres `R2_PUBLIC_URL`'den okunuyor, CDN'e
+geçince elle düzeltme gerekmesin diye) ve beş bileşenden de `unoptimized`
+kaldırıldı. Ölçülen kazanç: **179 KB → 5 KB** (%97), ana sayfa ~0.80 MB → ~50 KB.
+
+`cache-control: public, max-age=31536000, immutable` R2 nesnelerinde zaten
+vardı; şikâyetin "sadece ilk giriş" olmasının sebebi buydu.
+
+**Yan etkisi bilinsin:** artık ziyaretçi r2.dev'e hiç gitmiyor, sunucu her
+görsel+boy için bir kez gidiyor. Bu r2.dev'e giden istek sayısını çok
+düşürüyor (hız sınırına takılma riski azalıyor) ama r2.dev bir dönüştürme
+sırasında zaman aşımına uğrarsa Next 500 döner — yani "yavaş görsel" yerine
+"görsel yok". `cdn.zenginsocks.com`'a geçmek bu yüzden artık daha önemli.
+
+Dönüştürülmüş kopyalar `.next/cache/images`'ta 30 gün duruyor. Railway diski
+kalıcı olmadığı için her deploy sonrası ilk ziyaretçi dönüştürme maliyetini
+ödüyor.
+
+---
+
 ## E-posta bildirimi  ✅ kod hazır, anahtar bekliyor (2026-08-09)
 
 `src/lib/email.ts` — Resend'in HTTP API'sine düz `fetch` ile gidiyor, SDK
