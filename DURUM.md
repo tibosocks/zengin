@@ -137,7 +137,28 @@ Tekrar takılırsa çözüm servis → Settings → Source:
 
 ---
 
-## DNS geçişi — sırada ⏳
+## DNS geçişi — tamamlandı ✅ (2026-08-09)
+
+`zenginsocks.com` ve `www.zenginsocks.com` artık Railway'deki yeni siteyi
+gösteriyor. Let's Encrypt sertifikası verildi (11:15 UTC, 7 Kasım 2026'ya
+kadar). Ticimax sitesi bu alan adından düştü.
+
+- Nameserver: `valentin/zelda.ns.cloudflare.com` (GoDaddy'de kayıtlı kalıyor)
+- Kök: `CNAME @ → 81ke9vm2.up.railway.app` · **gri bulut (DNS only)**
+- `www`: `CNAME → oh6mete6.up.railway.app` · **gri bulut**
+- E-posta hiç bozulmadı: MX, `mail/smtp/imap/pop3`, SPF, DKIM aynen taşındı
+
+**Kesinti ~25 dakika sürdü.** Sebep: DNS Railway'e döndükten sonra Railway
+sertifikayı üretene kadar HTTPS el sıkışması başarısız oluyor. Bir dahaki
+sefere alan adını Railway'e ekleyip **doğrulama tamamlandıktan sonra** DNS'i
+çevirmek gerekir; sıralama SETUP.md bölüm 6'da düzeltildi.
+
+Ticimax'ten kalan iki kayıt hâlâ duruyor, zararsız ama gereksiz:
+`_acme-challenge` CNAME ve `_cf-custom-hostname` TXT. Temizlenebilir.
+
+---
+
+## Eski DNS notları (geçiş öncesi durum)
 
 Alan adı GoDaddy'de kayıtlı ama **DNS GoDaddy'de değil**, Ticimax bayisi
 Nicegrup'ta (`ns21/ns22.nicegrup.com`). Kök `104.16.109.26` ile hâlâ eski

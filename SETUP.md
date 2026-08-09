@@ -174,6 +174,11 @@ Alan adı GoDaddy'de **kayıtlı kalır**, sadece DNS yönetimi değişir.
 
 **Aşama 3 · Railway'e yönlendir (asıl geçiş anı)**
 
+> ⚠️ **Kesinti burada oluyor.** DNS Railway'e döndüğü an ile Railway'in
+> sertifikayı ürettiği an arasında site HTTPS vermez; tarayıcı sertifika
+> hatası gösterir, `curl` 60 döner. 2026-08-09 geçişinde bu **~25 dakika**
+> sürdü. Müşteri trafiğinin düşük olduğu bir saatte yapın.
+
 10. İki `_railway-verify` TXT kaydını Cloudflare'e **hemen** ekleyin; trafiği
     etkilemez, doğrulamayı hızlandırır
 11. Cloudflare DNS'te kök `A 104.16.109.26` kaydını **silin**, yerine
