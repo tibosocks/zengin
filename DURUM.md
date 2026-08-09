@@ -122,19 +122,33 @@ UPDATE "ProductImage" SET url = replace(url,
 
 ---
 
-## Railway eski sürümü çalıştırıyor ⚠️
+## Railway deploy'u — çözüldü ✅
 
-GitHub'da her şey güncel ama Railway **Faz 1 sürümünde takılı**. Rota
-testiyle doğrulandı: `/api/panel/upload` 401 (var), `/yeni-urunler` 404 (yok).
+Eskiden Faz 1 sürümünde takılıydı; 2026-08-09'da doğrulandı, artık son commit
+yayında: `/yeni-urunler` 200, KDV hariç fiyat düzeni canlıda.
 
-Railway'de "Redeploy" en son commit'i çekmez, aynı kaynak anlık görüntüsünü
-yeniden derler. Çözüm servis → Settings → Source:
+Tekrar takılırsa çözüm servis → Settings → Source:
 - Branch `main` seçili mi
 - **Wait for CI / Check Suites kapalı olmalı** (depoda CI yok, açıksa
   sonsuza kadar bekler ve hiç deploy etmez)
 - Auto Deploy açık mı
 
 İşe yaramazsa GitHub bağlantısını kaldırıp yeniden bağlamak webhook'u sıfırlar.
+
+---
+
+## DNS geçişi — sırada ⏳
+
+Alan adı GoDaddy'de kayıtlı ama **DNS GoDaddy'de değil**, Ticimax bayisi
+Nicegrup'ta (`ns21/ns22.nicegrup.com`). Kök `104.16.109.26` ile hâlâ eski
+Ticimax sitesini gösteriyor. Railway'de custom domain **henüz eklenmedi**
+(`Host: zenginsocks.com` ile istek 404 dönüyor).
+
+Adım adım runbook ve bugünkü kayıt tablosu [SETUP.md](SETUP.md) bölüm 6'da.
+
+**En kritik nokta:** MX kayıtları `s0/s1/s2.protection.ticimax.com`, posta
+sunucusu `85.153.133.10`. Nameserver Cloudflare'e alınırken bunlar birebir
+taşınmazsa `@zenginsocks.com` e-postaları durur.
 
 ---
 

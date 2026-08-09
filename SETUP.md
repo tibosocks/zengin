@@ -96,27 +96,98 @@ ve bucket'ın herkese açık adresi (`https://pub-xxxx.r2.dev`).
 
 ---
 
-## 6. Alan adı — GoDaddy'den Cloudflare DNS'e
+## 6. Alan adı — DNS geçişi (Ticimax → Railway)
 
-**Neden gerekiyor:** Railway custom domain için CNAME hedefi veriyor. Kök alan
-adına (`zenginsocks.com`, www'suz) CNAME yazılamaz; bunun için DNS sağlayıcısının
-CNAME flattening desteklemesi lazım ve GoDaddy desteklemiyor.
+### Bugünkü durum (2026-08-09'da ölçüldü)
 
-Alan adı GoDaddy'de **kayıtlı kalır**, sadece DNS yönetimi Cloudflare'e geçer.
-Ücretsiz.
+Alan adı **GoDaddy'de kayıtlı** ama **DNS GoDaddy'de değil**: yetkili
+nameserver'lar Ticimax bayisi Nicegrup'ta. Yani kayıtları bugün GoDaddy
+panelinden değil, delegasyonu değiştirerek yöneteceğiz.
 
-1. Cloudflare → **Add a site** → `zenginsocks.com` → **Free** planı
-2. Cloudflare size iki nameserver verir (`xxx.ns.cloudflare.com`)
-3. GoDaddy → Domain → **DNS → Nameservers → Change → Enter my own**
-   → Cloudflare'in verdiği ikisini yazın
-4. Yayılması 15 dk – 2 saat sürer
+| Kayıt | Bugünkü değer | Ne işe yarıyor |
+|---|---|---|
+| NS | `ns21.nicegrup.com`, `ns22.nicegrup.com` | DNS yönetimi Nicegrup'ta |
+| A `@` | `104.16.109.26` | eski Ticimax sitesi |
+| `www` | `zenginsocks.com` → aynı IP | eski site |
+| **MX** | `s0/s1/s2.protection.ticimax.com` | **e-posta — en kritik kayıt** |
+| `mail`, `smtp`, `imap` | `85.153.133.10` | posta kutusu sunucusu |
+| TXT SPF | `v=spf1 include:_spf.nicegrup.com -all` | e-posta doğrulama |
+| TXT `_dmarc` | `v=DMARC1;p=none;pct=100;rua=…` | e-posta raporu |
 
-Sonra Railway'de:
-- **Settings → Networking → Custom Domain** → `zenginsocks.com` ve `www.zenginsocks.com`
-- Railway'in verdiği CNAME hedefini Cloudflare DNS'e ekleyin (Proxy: açık)
+**En büyük risk e-posta.** Nameserver Cloudflare'e alınırken MX, `mail`,
+`smtp`, `imap`, SPF ve DMARC kayıtları birebir taşınmazsa `@zenginsocks.com`
+adreslerine gelen postalar durur. Cloudflare ekleme sırasında tarayıp çoğunu
+kendisi getirir; **yukarıdaki tabloyla tek tek karşılaştırın.**
 
-> Bu adım yayına almadan önce yapılsa yeter. Geliştirme boyunca Railway'in
-> geçici adresi kullanılabilir.
+> Not: e-posta bugün Ticimax/Nicegrup altyapısında. Ticimax aboneliği
+> kapatılırsa DNS doğru olsa bile posta kutuları gider; o durumda ayrı bir
+> e-posta sağlayıcısı (Google Workspace, Yandex360, Zoho…) gerekir.
+
+### Neden Cloudflare
+
+Railway custom domain için CNAME hedefi veriyor. Kök alan adına
+(`zenginsocks.com`, www'suz) CNAME yazılamaz; DNS sağlayıcısının CNAME
+flattening desteklemesi lazım. GoDaddy'nin kendi DNS'i desteklemiyor,
+Cloudflare ücretsiz destekliyor. Ayrıca `cdn.zenginsocks.com` (R2) ve
+Resend kayıtları da aynı yerden yönetilir.
+
+Alan adı GoDaddy'de **kayıtlı kalır**, sadece DNS yönetimi değişir.
+
+### Sıra — bu sırayı bozmayın
+
+**Aşama 0 · Railway (kesinti yok, önce bu)**
+1. Railway → servis → **Settings → Networking → Custom Domain**
+   → `zenginsocks.com` ve `www.zenginsocks.com` ekleyin
+2. Railway size bir CNAME hedefi verir (`….up.railway.app`) — not edin
+3. Değişkeni güncelleyin: `NEXT_PUBLIC_SITE_URL=https://zenginsocks.com`
+
+**Aşama 1 · Cloudflare'a ekle (kesinti yok, DNS hâlâ Nicegrup'ta)**
+
+4. Cloudflare → **Add a site** → `zenginsocks.com` → **Free**
+5. Taranan kayıtları yukarıdaki tabloyla karşılaştırın, eksikleri elle ekleyin
+6. MX ve `mail`/`smtp`/`imap` kayıtları **Proxy KAPALI (gri bulut)** olmalı —
+   proxy'li posta kaydı çalışmaz
+7. Kök ve `www` kayıtlarını **şimdilik eski IP'de bırakın**; böylece
+   nameserver değişince site kesintiye uğramaz
+
+**Aşama 2 · Nameserver değişimi (yayılma başlar)**
+
+8. GoDaddy → Domain → **Nameservers → Change → I'll use my own**
+   → Cloudflare'in verdiği ikisi
+   - Alan adında `clientUpdateProhibited` kilidi var; GoDaddy arayüzü genelde
+     kendisi kaldırır. Sormazsa **Domain Settings → Domain lock**'u kapatın,
+     NS'i değiştirin, sonra tekrar açın
+9. Yayılma 15 dk – 2 saat (nadiren 24 saat). Cloudflare "Active" diyene kadar
+   bekleyin
+
+**Aşama 3 · Railway'e yönlendir (asıl geçiş anı)**
+
+10. Cloudflare DNS'te kök `A 104.16.109.26` kaydını **silin**, yerine:
+    - `CNAME  @    → <railway-hedefi>`  · Proxy **açık** (turuncu)
+    - `CNAME  www  → <railway-hedefi>`  · Proxy **açık**
+11. Cloudflare → **SSL/TLS → Overview → Full (strict)**.
+    "Flexible" bırakılırsa sonsuz yönlendirme döngüsü olur
+12. Railway'de alan adı **Active / sertifika verildi** olana kadar bekleyin
+
+**Aşama 4 · Doğrulama**
+
+```bash
+dig +short NS zenginsocks.com            # cloudflare.com olmalı
+dig +short MX zenginsocks.com            # ticimax protection — DEĞİŞMEMELİ
+curl -sI https://zenginsocks.com | head -1        # 200
+curl -s https://zenginsocks.com/yeni-urunler -o /dev/null -w '%{http_code}\n'
+```
+Bir de kendinize `info@zenginsocks.com`'dan ve o adrese mail atıp
+**e-postanın iki yönde de çalıştığını** doğrulayın.
+
+### Sonrasında
+
+- SPF tek kayıt olmalı. Resend eklenince ikinci bir SPF TXT açmayın, birleştirin:
+  `v=spf1 include:_spf.nicegrup.com include:_spf.resend.com -all`
+- `cdn.zenginsocks.com` → R2 bağlanabilir (bkz. bu dosyada R2 bölümü ve
+  DURUM.md'deki `UPDATE "ProductImage"` sorgusu)
+- Aşağıdaki **yayın öncesi kontrol listesini** bitirin (Postgres public
+  access, AUTH_SECRET, yönetici parolası)
 
 ---
 
