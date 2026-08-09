@@ -248,6 +248,11 @@ export function ProductTable({
                                 Pasif
                               </Badge>
                             ) : null}
+                            {variant.stock - variant.reserved <= 0 ? (
+                              <Badge tone="danger" className="ml-2">
+                                Tükendi
+                              </Badge>
+                            ) : null}
                           </td>
                           <td />
                           <td />

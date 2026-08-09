@@ -27,6 +27,12 @@ export default async function ProductsPage({
   const statusFilter = typeof params.durum === "string" ? params.durum : "";
   const page = Math.max(1, Number(params.sayfa) || 1);
 
+  const thresholdSetting = await prisma.setting.findUnique({
+    where: { key: "lowStockThreshold" },
+    select: { value: true },
+  });
+  const lowStockThreshold = Number(thresholdSetting?.value) || 5;
+
   const where = {
     ...(query
       ? {
@@ -39,11 +45,17 @@ export default async function ProductsPage({
     ...(categoryId ? { categories: { some: { categoryId } } } : {}),
     ...(statusFilter === "aktif" ? { isActive: true } : {}),
     ...(statusFilter === "pasif" ? { isActive: false } : {}),
+    // "Stoğu bitenler" = tükenmiş VARYANTI olan ürünler. Önceden `every`
+    // yazıyordu, yani "tüm varyantları bitmiş" — öyle bir ürün olmadığı için
+    // filtre hep boş dönüyordu. Ölçü vitrindekiyle aynı: satılabilir =
+    // stock − reserved, o yüzden stok rezerveyle karşılaştırılıyor.
     ...(stockFilter === "bitti"
-      ? { variants: { every: { stock: { lte: 0 } } } }
+      ? { variants: { some: { stock: { lte: prisma.variant.fields.reserved } } } }
       : {}),
+    // Kritik eşik Ayarlar'dan geliyor; sabit 5 yazılıysa ayarı değiştirmek
+    // hiçbir şeye yaramıyordu.
     ...(stockFilter === "kritik"
-      ? { variants: { some: { stock: { gt: 0, lte: 5 } } } }
+      ? { variants: { some: { stock: { gt: 0, lte: lowStockThreshold } } } }
       : {}),
   };
 

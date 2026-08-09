@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import type { CustomerStatus } from "@/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth";
+import { normalizePhone } from "@/lib/phone";
 import { kurusToDecimalString, toBasisPoints } from "@/lib/price";
 import { prisma } from "@/lib/prisma";
 
@@ -163,4 +164,129 @@ export async function saveCustomerNote(
 
   revalidatePath(`/panel/musteriler/${customerId}`);
   return { ok: true, message: "Not kaydedildi." };
+}
+
+const newCustomerSchema = z.object({
+  fullName: z.string().trim().min(1, "Ad soyad gerekli").max(160),
+  phone: z.string().trim().min(1, "Telefon gerekli"),
+  email: z
+    .string()
+    .trim()
+    .max(200)
+    .refine((v) => v === "" || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), {
+      message: "E-posta adresi geçersiz",
+    })
+    .optional(),
+  companyName: z.string().trim().max(200).optional(),
+  taxNo: z.string().trim().max(40).optional(),
+  type: z.enum(["bireysel", "bayi"]).default("bireysel"),
+  discountPercent: percentText.optional(),
+  note: z.string().trim().max(1000).optional(),
+});
+
+/**
+ * Panelden elle müşteri açar.
+ *
+ * Bayi başvurusundan farkı: yönetici açtığı için onay kuyruğuna girmiyor,
+ * doğrudan `aktif` oluyor. Parola konmuyor — müşteri isterse bayi girişinden
+ * kendi parolasını oluşturur; buradaki kayıt sipariş ve iskonto için yeterli.
+ */
+export async function createCustomer(
+  formData: FormData,
+): Promise<CustomerResult & { customerId?: string }> {
+  const session = await requireAdmin();
+
+  const parsed = newCustomerSchema.safeParse({
+    fullName: formData.get("fullName") ?? "",
+    phone: formData.get("phone") ?? "",
+    email: (formData.get("email") as string) || undefined,
+    companyName: (formData.get("companyName") as string) || undefined,
+    taxNo: (formData.get("taxNo") as string) || undefined,
+    type: (formData.get("type") as string) || "bireysel",
+    discountPercent: (formData.get("discountPercent") as string) || undefined,
+    note: (formData.get("note") as string) || undefined,
+  });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message };
+  }
+  const data = parsed.data;
+
+  const phone = normalizePhone(data.phone);
+  if (!phone) {
+    return {
+      ok: false,
+      error: "Telefon 5 ile başlayan 10 haneli cep numarası olmalı (örn. 0532 111 22 33).",
+    };
+  }
+
+  // Telefon benzersiz: aynı numara zaten varsa yeni kayıt açmak yerine
+  // mevcut kayda yönlendiriyoruz, yoksa aynı kişi ikiye bölünür.
+  const existing = await prisma.customer.findUnique({
+    where: { phone },
+    select: { id: true, fullName: true },
+  });
+  if (existing) {
+    return {
+      ok: false,
+      error: `Bu telefon zaten "${existing.fullName}" kaydında kayıtlı.`,
+      customerId: existing.id,
+    };
+  }
+
+  if (data.email) {
+    const emailOwner = await prisma.customer.findUnique({
+      where: { email: data.email },
+      select: { fullName: true },
+    });
+    if (emailOwner) {
+      return {
+        ok: false,
+        error: `Bu e-posta zaten "${emailOwner.fullName}" kaydında kayıtlı.`,
+      };
+    }
+  }
+
+  const percent = data.discountPercent
+    ? Number(data.discountPercent.replace(",", "."))
+    : 0;
+  if (percent < 0 || percent > 100) {
+    return { ok: false, error: "İskonto 0 ile 100 arasında olmalı." };
+  }
+  const percentBp = Math.round(percent * 100);
+
+  const customer = await prisma.customer.create({
+    data: {
+      fullName: data.fullName,
+      phone,
+      email: data.email || null,
+      companyName: data.companyName || null,
+      taxNo: data.taxNo || null,
+      type: data.type,
+      status: "aktif",
+      discountPercent: kurusToDecimalString(percentBp),
+      note: data.note || null,
+    },
+  });
+
+  // İskontolu açıldıysa denetim kaydına da yazıyoruz; updateDiscount ile
+  // aynı gerekçe — yüzdenin nereden geldiği her zaman izlenebilmeli.
+  if (percentBp > 0) {
+    await prisma.discountChangeLog.create({
+      data: {
+        customerId: customer.id,
+        fromValue: "0.00",
+        toValue: kurusToDecimalString(percentBp),
+        userId: session.userId,
+        note: "Panelden müşteri oluşturuldu",
+      },
+    });
+  }
+
+  revalidatePath("/panel/musteriler");
+
+  return {
+    ok: true,
+    message: `"${customer.fullName}" oluşturuldu.`,
+    customerId: customer.id,
+  };
 }

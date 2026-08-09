@@ -269,6 +269,32 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Panel düzeltmeleri (2026-08-09)  ✅
+
+**"Stoğu bitenler" filtresi hep boş dönüyordu.** Sorgu `variants: { every: {
+stock: { lte: 0 } } }` yazıyordu — yani "TÜM varyantları bitmiş ürünler".
+Öyle bir ürün yok, o yüzden 222 üründe 0 sonuç. `some` olarak düzeltildi ve
+ölçü vitrinle aynı hale getirildi: satılabilir = `stock − reserved`
+(Prisma alan referansı: `prisma.variant.fields.reserved`). Artık 13 ürün /
+22 varyant listeleniyor. Varyant satırlarına da **Tükendi** rozeti eklendi.
+
+**"Kritik stok" eşiği sabit 5 yazılıydı**, Ayarlar'daki `lowStockThreshold`
+okunmuyordu. Düzeltildi. Şu an 0 sonuç dönüyor ama bu doğru — veride 1-5
+arası stoklu varyant yok, stoklar ya 0 ya da yüzlerce.
+
+**Panelden müşteri oluşturma eklendi** — `/panel/musteriler/yeni`.
+`createCustomer` telefonu normalleştirip tekilliği koruyor (aynı numara varsa
+mevcut kayda yönlendiriyor), bayi seçilince iskonto kutusuna Ayarlar'daki
+varsayılan geliyor, iskontolu açılan müşteri `DiscountChangeLog`'a da
+yazılıyor. Panelden açılan müşteri onay beklemiyor, doğrudan `aktif`.
+
+**İskonto zaten KDV hariç fiyattan uygulanıyordu, düzeltme gerekmedi.**
+`calculatePrice`: indirim `listNet` üzerinden, KDV indirimli net üzerinden.
+Sipariş kalemlerine `listPrice` ve `unitPrice` KDV hariç, KDV ayrı alanda
+yazılıyor — faturaya uygun.
+
+---
+
 ## Sabit sayfalar + SEO  ✅ (2026-08-09)
 
 `Page` modeli şemada duruyordu ama hiç kullanılmamıştı; footer'daki üç

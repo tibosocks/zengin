@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
+import { buttonStyles } from "@/components/ui/button";
 import { Card, EmptyState, PageHeader } from "@/components/ui/surface";
 import { toBasisPoints, toKurus } from "@/lib/price";
 import { prisma } from "@/lib/prisma";
@@ -105,6 +106,11 @@ export default async function CustomersPage({
       <PageHeader
         title="Müşteriler"
         description="Bayi iskontosu burada yönetiliyor. Yüzdeye tıklayıp doğrudan değiştirebilirsiniz."
+        action={
+          <Link href="/panel/musteriler/yeni" className={buttonStyles({})}>
+            Yeni müşteri
+          </Link>
+        }
       />
 
       {pendingCount > 0 && active !== "onay_bekliyor" ? (
