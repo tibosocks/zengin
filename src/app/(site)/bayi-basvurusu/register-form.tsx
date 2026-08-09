@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { dealerRegister, type AuthState } from "@/lib/actions/customer-auth";
 
 function Submit() {
@@ -33,15 +34,7 @@ export function DealerRegisterForm() {
       </Field>
 
       <Field label="Cep telefonu" htmlFor="phone" hint="giriş için kullanılacak">
-        <Input
-          id="phone"
-          name="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="05XX XXX XX XX"
-          required
-        />
+        <PhoneInput required autoComplete="tel" />
       </Field>
 
       <Field label="E-posta" htmlFor="email" hint="isteğe bağlı">

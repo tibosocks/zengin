@@ -1,6 +1,6 @@
 import {
   ArrowRight,
-  BadgePercent,
+  Boxes,
   ImageOff,
   Layers,
   MessageCircle,
@@ -69,10 +69,10 @@ export default async function HomePage() {
                 <ArrowRight className="size-4" />
               </Link>
               <Link
-                href="/bayi-basvurusu"
+                href="/sayfa/iletisim"
                 className={buttonStyles({ variant: "secondary", size: "lg" })}
               >
-                Bayi başvurusu
+                Bize ulaşın
               </Link>
             </div>
 
@@ -101,7 +101,7 @@ export default async function HomePage() {
               <Link
                 key={category.id}
                 href={`/kategori/${category.slug}`}
-                className={`group relative aspect-4/5 overflow-hidden rounded-card border border-line bg-white ${
+                className={`group relative aspect-square overflow-hidden rounded-card border border-line bg-surface ${
                   index % 2 === 1 ? "lg:translate-y-8" : ""
                 }`}
               >
@@ -111,7 +111,7 @@ export default async function HomePage() {
                     alt={category.name}
                     fill
                     sizes="(max-width: 1024px) 45vw, 22vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex size-full items-center justify-center text-muted">
@@ -137,9 +137,9 @@ export default async function HomePage() {
               text: "Tüm ürünler düzine birimiyle satılır, listelenen fiyat bir düzinenin fiyatıdır.",
             },
             {
-              icon: BadgePercent,
-              title: "Bayiye özel iskonto",
-              text: "Düzenli çalıştığımız müşterilere tanımlı iskonto, giriş yaptığınızda fiyatlara yansır.",
+              icon: Boxes,
+              title: "Geniş beden ve renk",
+              text: "Kadın, erkek, çocuk ve bebe gruplarında bambu, penye, havlu ve yün seçenekleri.",
             },
             {
               icon: Store,
@@ -184,7 +184,7 @@ export default async function HomePage() {
             >
               <Link
                 href={`/kategori/${category.slug}`}
-                className="relative aspect-4/3 overflow-hidden bg-surface-alt"
+                className="relative aspect-square overflow-hidden bg-surface-alt"
               >
                 {category.imageUrl ? (
                   <Image
@@ -192,7 +192,7 @@ export default async function HomePage() {
                     alt={category.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex size-full items-center justify-center text-muted">
@@ -296,41 +296,41 @@ export default async function HomePage() {
         </ol>
       </section>
 
-      {/* --- bayilik çağrısı ------------------------------------------------ */}
+      {/* --- iletişim çağrısı ------------------------------------------- */}
       <section className="border-t border-line bg-ink">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-14 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="max-w-2xl">
             <h2 className="font-display text-2xl text-white sm:text-3xl">
-              Bayi iskontonuzu tanımlayalım
+              Aradığınızı bulamadınız mı?
             </h2>
             <p className="mt-2 leading-relaxed text-white/70">
-              Düzenli alım yapan müşterilerimize özel iskonto uyguluyoruz.
-              Başvurunuz onaylandığında iskontolu fiyatlar siteye giriş
-              yaptığınızda otomatik görünür.
+              Stok durumu, termin ve toptan alım koşulları için bize doğrudan
+              yazın. Kataloğa girmemiş modellerimiz de olabiliyor.
             </p>
           </div>
 
           <div className="flex shrink-0 flex-wrap gap-3">
-            <Link
-              href="/bayi-basvurusu"
-              className="inline-flex h-11 items-center justify-center rounded-md bg-white px-6 text-sm font-medium text-ink transition-opacity hover:opacity-90"
-            >
-              Bayi başvurusu
-            </Link>
             {whatsappHref ? (
               <a
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-white/25 px-6 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-white px-6 text-sm font-medium text-ink transition-opacity hover:opacity-90"
               >
                 <MessageCircle className="size-4" />
                 WhatsApp&apos;tan yazın
               </a>
             ) : null}
+            <Link
+              href="/sayfa/iletisim"
+              className="inline-flex h-11 items-center justify-center rounded-md border border-white/25 px-6 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            >
+              İletişim bilgileri
+            </Link>
           </div>
         </div>
       </section>
+
     </>
   );
 }

@@ -31,9 +31,8 @@ havlu ve bambu çorap üretiyoruz.</p>
   <li>Fiyatlar KDV hariç gösterilir, KDV dahil tutar hemen altında yazar.</li>
   <li>Site üzerinden <strong>ödeme alınmaz</strong>. Siparişinizi buradan
       iletirsiniz, ödemeyi mağazamızda yaparsınız.</li>
-  <li>Düzenli çalıştığımız müşterilerimize <strong>bayi iskontosu</strong>
-      tanımlıyoruz. Başvuru için
-      <a href="/bayi-basvurusu">bayi başvuru formunu</a> doldurabilirsiniz.</li>
+  <li>Toptan alım yapan firmalar <a href="/bayi-basvurusu">bayi hesabı</a>
+      açarak sipariş geçmişini takip edebilir.</li>
 </ul>
 
 <h2>Ürün gruplarımız</h2>
@@ -145,7 +144,7 @@ bize ulaştığında sizinle iletişime geçiyoruz. <strong>Site üzerinden öde
 alınmaz</strong>, ödeme mağazamızda yapılır.</p>
 
 <h2>Bayilik</h2>
-<p>Düzenli alım yapan müşterilerimize özel iskonto tanımlıyoruz.
+<p>Toptan alım yapan firmalar için bayi hesabı açıyoruz.
 <a href="/bayi-basvurusu">Bayi başvuru formunu</a> doldurduğunuzda
 başvurunuz değerlendirilir.</p>
 `.trim();

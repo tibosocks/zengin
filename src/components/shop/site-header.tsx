@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import { ChevronRight, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ export function SiteHeader({
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [openChild, setOpenChild] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   function search(event: React.FormEvent) {
@@ -61,7 +62,10 @@ export function SiteHeader({
               key={category.id}
               className="relative"
               onMouseEnter={() => setOpenMenu(category.id)}
-              onMouseLeave={() => setOpenMenu(null)}
+              onMouseLeave={() => {
+                setOpenMenu(null);
+                setOpenChild(null);
+              }}
             >
               <Link
                 href={`/kategori/${category.slug}`}
@@ -71,24 +75,43 @@ export function SiteHeader({
               </Link>
 
               {category.children.length > 0 && openMenu === category.id ? (
-                <div className="absolute top-full left-0 min-w-56 rounded-b-card border border-t-0 border-line bg-white py-2 shadow-sm">
+                <div className="absolute top-full left-0 min-w-60 rounded-b-card border border-t-0 border-line bg-white py-2 shadow-sm">
                   {category.children.map((child) => (
-                    <div key={child.id}>
+                    <div
+                      key={child.id}
+                      className="relative"
+                      onMouseEnter={() => setOpenChild(child.id)}
+                      onMouseLeave={() => setOpenChild(null)}
+                    >
                       <Link
                         href={`/kategori/${child.slug}`}
-                        className="block px-4 py-1.5 text-sm text-ink-soft hover:bg-surface-alt hover:text-ink"
+                        className={cn(
+                          "flex items-center justify-between gap-3 px-4 py-2 text-sm text-ink-soft hover:bg-surface-alt hover:text-ink",
+                          openChild === child.id && "bg-surface-alt text-ink",
+                        )}
                       >
                         {child.name}
+                        {child.children.length > 0 ? (
+                          <ChevronRight className="size-3.5 shrink-0 text-muted" />
+                        ) : null}
                       </Link>
-                      {child.children.map((grand) => (
-                        <Link
-                          key={grand.id}
-                          href={`/kategori/${grand.slug}`}
-                          className="block py-1 pr-4 pl-8 text-sm text-muted hover:bg-surface-alt hover:text-ink"
-                        >
-                          {grand.name}
-                        </Link>
-                      ))}
+
+                      {/* Üçüncü seviye yana açılıyor. Hepsi tek panelde alt
+                          alta dizilince hangi başlığın altına ait olduğu
+                          okunmuyordu. */}
+                      {child.children.length > 0 && openChild === child.id ? (
+                        <div className="absolute top-0 left-full min-w-52 rounded-r-card rounded-bl-card border border-line bg-white py-2 shadow-sm">
+                          {child.children.map((grand) => (
+                            <Link
+                              key={grand.id}
+                              href={`/kategori/${grand.slug}`}
+                              className="block px-4 py-2 text-sm text-ink-soft hover:bg-surface-alt hover:text-ink"
+                            >
+                              {grand.name}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>

@@ -17,7 +17,8 @@ export default async function DealerLoginPage() {
     <div className="mx-auto max-w-sm px-4 py-16">
       <h1 className="mb-1 font-display text-2xl text-ink">Bayi girişi</h1>
       <p className="mb-6 text-sm text-muted">
-        Giriş yaptığınızda size özel iskontolu fiyatlar görünür.
+        Sipariş geçmişinizi görüntüleyin, hesabınıza tanımlı fiyatlarla
+        sipariş verin.
       </p>
 
       <div className="rounded-card border border-line bg-white p-5">

@@ -16,9 +16,13 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 24;
 
+// Varsayılan "yeni": adres çubuğunda sirala parametresi yokken de en son
+// eklenenler önce gelir. Panelde belirlenen sıraya dönmek için "onerilen".
+const DEFAULT_SORT = "yeni";
+
 const SORTS = [
-  { key: "", label: "Önerilen" },
   { key: "yeni", label: "Yeniler" },
+  { key: "onerilen", label: "Önerilen" },
   { key: "ucuz", label: "Artan fiyat" },
   { key: "pahali", label: "Azalan fiyat" },
   { key: "ad", label: "İsme göre" },
@@ -68,7 +72,8 @@ export default async function CategoryPage({
   if (!category) notFound();
 
   const page = Math.max(1, Number(query.sayfa) || 1);
-  const sort = typeof query.sirala === "string" ? query.sirala : "";
+  const sortParam = typeof query.sirala === "string" ? query.sirala : "";
+  const sort = sortParam || DEFAULT_SORT;
 
   const session = await getCustomerSession();
   const { discountPercent } = await getViewerDiscount(session?.customerId);
@@ -82,7 +87,10 @@ export default async function CategoryPage({
       categoryIds: branchIds,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
-      sort: (sort || undefined) as "yeni" | "ucuz" | "pahali" | "ad" | undefined,
+      sort:
+        sort === "onerilen"
+          ? undefined
+          : (sort as "yeni" | "ucuz" | "pahali" | "ad"),
       discountPercent,
     }),
     getCategoryTrail(category.id),
@@ -92,7 +100,7 @@ export default async function CategoryPage({
 
   function pageHref(next: number) {
     const params = new URLSearchParams();
-    if (sort) params.set("sirala", sort);
+    if (sortParam) params.set("sirala", sortParam);
     if (next > 1) params.set("sayfa", String(next));
     const qs = params.toString();
     return `/kategori/${category!.slug}${qs ? `?${qs}` : ""}`;
@@ -140,7 +148,8 @@ export default async function CategoryPage({
         {SORTS.map((option) => {
           const active = sort === option.key;
           const params = new URLSearchParams();
-          if (option.key) params.set("sirala", option.key);
+          // Varsayılan seçenek için parametre yazmıyoruz, adres temiz kalsın
+          if (option.key !== DEFAULT_SORT) params.set("sirala", option.key);
           const qs = params.toString();
           return (
             <Link

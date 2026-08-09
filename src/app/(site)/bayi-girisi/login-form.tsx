@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { dealerLogin, type AuthState } from "@/lib/actions/customer-auth";
 
 function Submit() {
@@ -22,16 +23,7 @@ export function DealerLoginForm() {
   return (
     <form action={formAction} className="space-y-4">
       <Field label="Cep telefonu" htmlFor="phone">
-        <Input
-          id="phone"
-          name="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="username"
-          placeholder="05XX XXX XX XX"
-          autoFocus
-          required
-        />
+        <PhoneInput autoComplete="username" autoFocus required />
       </Field>
 
       <Field label="Parola" htmlFor="password">

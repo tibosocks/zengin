@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Card, CardHeader } from "@/components/ui/surface";
 import { createCustomer } from "@/lib/actions/customers";
 
@@ -72,13 +73,7 @@ export function NewCustomerForm({ defaultDiscount }: { defaultDiscount: string }
           </Field>
 
           <Field label="Telefon" htmlFor="phone" hint="0532 111 22 33">
-            <Input
-              id="phone"
-              name="phone"
-              required
-              inputMode="tel"
-              placeholder="0532 111 22 33"
-            />
+            <PhoneInput required />
           </Field>
 
           <Field label="E-posta" htmlFor="email" hint="isteğe bağlı">

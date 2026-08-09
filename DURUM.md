@@ -270,6 +270,30 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Vitrin düzeltmeleri — ikinci tur (2026-08-09)  ✅
+
+- **Bayi iskontosu vurgusu kaldırıldı.** Kullanıcı "çok nadir iskonto
+  veriyoruz" dedi; ana sayfadaki koyu şerit iletişim çağrısına, değer
+  önerisi "Geniş beden ve renk"e çevrildi. `/bayi-girisi`, `/bayi-basvurusu`
+  ve Hakkımızda metinleri de nötrleştirildi (Hakkımızda canlı veritabanında
+  da güncellendi). **İskonto özelliği duruyor** — sadece pazarlama dili
+  değişti; `/hesabim`'da iskontosu olan müşteri yüzdesini görmeye devam ediyor
+- **Görsel kırpılması giderildi.** Ürün fotoğrafları 1600×1600 kare ve
+  çoraplar yan yana dizili; 4/5 ve 4/3 çerçevelerde `object-cover` kenardaki
+  çorabı kesiyordu. Çerçeveler kareye çevrildi, `object-contain` + iç boşluk
+  kullanıldı. Ürün kartlarına dokunulmadı (zaten kare, kırpma yok)
+- **Kategori sayfasında varsayılan sıralama "Yeniler".** `DEFAULT_SORT`
+  sabitiyle; panelde belirlenen sıraya dönmek için "Önerilen" (`sirala=onerilen`)
+- **Üst menü iç içe açılıyor.** Üçüncü seviye artık aynı panelde alt alta
+  değil, ikinci seviyenin üstüne gelince yandan açılıyor. Alt seviyesi olan
+  başlıklarda ok işareti var
+- **Telefon alanları yazarken biçimleniyor** — "0547 813 19 03".
+  `formatPhoneInput` (yarım girişte de çalışır, `+90` önekini de temizler) ve
+  `PhoneInput` bileşeni. Dört alanda birden kullanılıyor: bayi girişi, bayi
+  başvurusu, sipariş formu, panelden müşteri oluşturma
+
+---
+
 ## Ana sayfa yenilendi  ✅ (2026-08-09)
 
 Eski hâli üç bölümdü: ince bir başlık şeridi, düz kategori kutuları, ürün

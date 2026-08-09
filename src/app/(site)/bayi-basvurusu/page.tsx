@@ -35,8 +35,8 @@ export default async function DealerRegisterPage({
     <div className="mx-auto max-w-lg px-4 py-12">
       <h1 className="mb-1 font-display text-2xl text-ink">Bayi başvurusu</h1>
       <p className="mb-6 text-sm text-muted">
-        Toptan alım yapan firmalar için. Başvurunuz onaylandığında size özel
-        iskontolu fiyatlar görünür.
+        Toptan alım yapan firmalar için. Başvurunuz onaylandığında hesabınızla
+        giriş yapıp sipariş geçmişinizi takip edebilirsiniz.
       </p>
 
       <div className="rounded-card border border-line bg-white p-5">

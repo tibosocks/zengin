@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { placeOrder, type CheckoutState } from "@/lib/actions/orders";
 
 function SubmitButton() {
@@ -42,15 +43,7 @@ export function CheckoutForm() {
             hint="sizi bu numaradan arayacağız"
             error={state.fieldErrors?.phone}
           >
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="05XX XXX XX XX"
-              required
-            />
+            <PhoneInput required autoComplete="tel" />
           </Field>
 
           <Field
