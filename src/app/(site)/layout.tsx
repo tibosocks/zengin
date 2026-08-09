@@ -1,17 +1,26 @@
 import Link from "next/link";
 
 import { SiteHeader } from "@/components/shop/site-header";
+import { getCustomerSession } from "@/lib/auth";
 import { cartCount } from "@/lib/shop/cart";
 import { getMenuTree } from "@/lib/shop/catalog";
 
 export const dynamic = "force-dynamic";
 
 export default async function SiteLayout({ children }: LayoutProps<"/">) {
-  const [menu, count] = await Promise.all([getMenuTree(), cartCount()]);
+  const [menu, count, session] = await Promise.all([
+    getMenuTree(),
+    cartCount(),
+    getCustomerSession(),
+  ]);
 
   return (
     <>
-      <SiteHeader menu={menu} cartCount={count} />
+      <SiteHeader
+        menu={menu}
+        cartCount={count}
+        customerName={session?.fullName ?? null}
+      />
 
       <main className="flex-1">{children}</main>
 

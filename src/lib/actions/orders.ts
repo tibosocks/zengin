@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { getCustomerSession } from "@/lib/auth";
 import { kurusToDecimalString, toBasisPoints, toKurus } from "@/lib/price";
+import { normalizePhone } from "@/lib/phone";
 import { prisma } from "@/lib/prisma";
 import { calculatePrice } from "@/lib/price";
 import { readCartCookie, writeCartCookie } from "@/lib/shop/cart";
@@ -14,19 +15,6 @@ import { getViewerDiscount } from "@/lib/shop/catalog";
 export interface CheckoutState {
   error?: string;
   fieldErrors?: Record<string, string>;
-}
-
-// Türkiye cep telefonu: 05xx xxx xx xx veya +90 5xx…
-// Rakam dışını atıp 10 haneye indiriyoruz (başındaki 0 / 90 çıkar).
-function normalizePhone(input: string): string | null {
-  const digits = input.replace(/\D/g, "");
-  const trimmed = digits.startsWith("90")
-    ? digits.slice(2)
-    : digits.startsWith("0")
-      ? digits.slice(1)
-      : digits;
-
-  return /^5\d{9}$/.test(trimmed) ? trimmed : null;
 }
 
 const checkoutSchema = z.object({

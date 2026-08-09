@@ -36,6 +36,16 @@ Marka: Zengin. Tibo/tibosocks bırakıldı, sadece veri kaynağı olarak kullan�
 - Excel içe/dışa aktarma: `/panel/urunler/aktar`
 - Aktarım **idempotent** — tekrar çalıştırmak kopya üretmez
 
+### Faz 5 — bayi sistemi  ✅
+- `/bayi-basvurusu` — firma bilgileriyle başvuru, `onay_bekliyor` kaydı
+  oluşturur ve panele bildirim düşer. Kendiliğinden aktifleşmez
+- `/bayi-girisi` — telefon + parola. Onay bekleyen ve pasif hesaplar
+  ayrı mesajlarla reddediliyor
+- `/hesabim` — iskonto bilgisi, sipariş geçmişi, çıkış
+- Üst barda oturum açıksa müşteri adı, değilse "Bayi girişi"
+- Aynı telefondan üyeliksiz sipariş verilmişse yeni kayıt açılmıyor,
+  mevcut kayıt bayi başvurusuna dönüştürülüyor
+
 ### Faz 4 — sipariş yönetimi  ✅
 - `/panel/siparisler` — durum sekmeleri, arama, sayfalama
 - `/panel/siparisler/[id]` — kalemler, indirim dökümü, müşteri kartı,
@@ -131,6 +141,10 @@ ilerleme görünmez olur. Log dosyasına yazıp `tail -f` ile izleyin.
 
 **Düzine birimi her fiyatın yanında yazılmalı.** Yoksa müşteri tek çift sanar.
 
+**`"use server"` dosyaları sadece async fonksiyon export edebilir.** Sabitler
+ve saf yardımcılar ayrı modülde olmalı (`order-status.ts`, `phone.ts`).
+Bu kural iki kez derlemeyi kırdı.
+
 ---
 
 ## Bilinen konular
@@ -161,12 +175,13 @@ ilerleme görünmez olur. Log dosyasına yazıp `tail -f` ile izleyin.
 
 1. **Railway deploy'unu düzelt** (kullanıcı) — her şey yerelde çalışıyor,
    canlıya çıkmıyor
-2. **Bayi girişi + başvuru** — Faz 5. Fiyat altyapısı hazır, eksik olan
-   giriş/kayıt ekranları ve "Hesabım"
-3. **Bildirimler** — panel içi zil (`/panel/bildirimler` şu an 404) +
-   e-posta (Resend)
-4. **Ayarlar ekranı** (`/panel/ayarlar` şu an 404)
-5. Sabit sayfalar, SEO/sitemap, DNS geçişi — Faz 6
+2. **Bildirimler** — panel içi zil (`/panel/bildirimler` şu an 404) +
+   e-posta (Resend). Bildirim kayıtları zaten oluşuyor, görüntüleyen
+   ekran yok
+3. **Ayarlar ekranı** (`/panel/ayarlar` şu an 404) — WhatsApp numarası,
+   KDV oranı, bildirim alıcıları, yönetici parolası
+4. Sabit sayfalar (hakkımızda, iletişim, KVKK), SEO/sitemap — Faz 6
+5. DNS geçişi ve yayın öncesi kontrol listesi ([SETUP.md](SETUP.md))
 
 ---
 

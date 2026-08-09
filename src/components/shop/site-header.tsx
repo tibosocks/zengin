@@ -12,9 +12,11 @@ import { cn } from "@/lib/utils";
 export function SiteHeader({
   menu,
   cartCount,
+  customerName,
 }: {
   menu: MenuCategory[];
   cartCount: number;
+  customerName: string | null;
 }) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -116,11 +118,17 @@ export function SiteHeader({
           </form>
 
           <Link
-            href="/hesabim"
-            aria-label="Hesabım"
-            className="rounded p-2 text-ink-soft hover:bg-line-soft"
+            href={customerName ? "/hesabim" : "/bayi-girisi"}
+            aria-label={customerName ? `Hesabım — ${customerName}` : "Bayi girişi"}
+            title={customerName ?? "Bayi girişi"}
+            className="flex items-center gap-1.5 rounded p-2 text-ink-soft hover:bg-line-soft"
           >
             <User className="size-5" strokeWidth={1.75} />
+            {customerName ? (
+              <span className="hidden max-w-24 truncate text-sm lg:inline">
+                {customerName.split(" ")[0]}
+              </span>
+            ) : null}
           </Link>
           <Link
             href="/sepet"
