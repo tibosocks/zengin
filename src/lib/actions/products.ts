@@ -53,6 +53,8 @@ const productSchema = z.object({
         id: z.string().optional(),
         url: z.string().trim().min(1).max(600),
         alt: z.string().trim().max(200).optional(),
+        // Görsel bir renge aitse o seçenek değeri
+        optionValueId: z.string().nullable().optional(),
       }),
     )
     .default([]),
@@ -148,11 +150,23 @@ export async function saveProduct(
         where: { productId: product.id, id: { notIn: keptImageIds } },
       });
 
+      // Görselin rengi, ürünün kendi varyantlarında kullanılan bir değer
+      // olmalı; başka ürünün seçeneğine bağlanmasın.
+      const ownValueIds = new Set(
+        data.variants.flatMap((variant) => variant.optionValueIds),
+      );
+      const imageColor = (value: string | null | undefined) =>
+        value && ownValueIds.has(value) ? value : null;
+
       for (const [index, image] of data.images.entries()) {
         if (image.id) {
           await tx.productImage.update({
             where: { id: image.id },
-            data: { sortOrder: index, alt: image.alt || null },
+            data: {
+              sortOrder: index,
+              alt: image.alt || null,
+              optionValueId: imageColor(image.optionValueId),
+            },
           });
         } else {
           await tx.productImage.create({
@@ -161,6 +175,7 @@ export async function saveProduct(
               url: image.url,
               alt: image.alt || null,
               sortOrder: index,
+              optionValueId: imageColor(image.optionValueId),
             },
           });
         }

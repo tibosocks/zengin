@@ -43,17 +43,17 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         <h3 className="line-clamp-2 text-sm font-medium text-ink">{product.name}</h3>
 
         <div className="mt-auto pt-2">
-          {product.listGrossKurus ? (
+          {product.listNetKurus ? (
             <p className="tnum text-xs text-muted line-through">
-              {formatKurus(product.listGrossKurus)}
+              {formatKurus(product.listNetKurus)}
             </p>
           ) : null}
           <p className="tnum text-base font-semibold text-ink">
-            {formatKurus(product.grossKurus)}
+            {formatKurus(product.netKurus)}
           </p>
-          {/* Toptan satış: fiyat düzine üzerinden. Bunu yazmazsak müşteri
-              tek çift fiyatı sanıyor. */}
-          <p className="text-[11px] text-muted">KDV dahil · düzine</p>
+          {/* Toptan satış: fiyat düzine üzerinden ve KDV hariç. Bunu
+              yazmazsak müşteri tek çift fiyatı sanıyor. */}
+          <p className="text-[11px] text-muted">KDV hariç · Düzine</p>
         </div>
       </div>
     </Link>

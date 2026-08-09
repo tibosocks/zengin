@@ -45,7 +45,9 @@ export interface ProductCardData {
   netKurus: number;
   /** KDV dahil, kuruş */
   grossKurus: number;
-  /** İndirim varsa üstü çizili gösterilecek liste fiyatı */
+  /** İndirim varsa üstü çizili gösterilecek liste fiyatı, KDV hariç */
+  listNetKurus: number | null;
+  /** İndirim varsa üstü çizili gösterilecek liste fiyatı, KDV dahil */
   listGrossKurus: number | null;
   /** Satılabilir varyantı kaldı mı */
   inStock: boolean;
@@ -105,7 +107,13 @@ function cardPricing(variants: VariantForPricing[], discountPercent: number) {
   );
 
   if (!best) {
-    return { netKurus: 0, grossKurus: 0, listGrossKurus: null, inStock: false };
+    return {
+      netKurus: 0,
+      grossKurus: 0,
+      listNetKurus: null,
+      listGrossKurus: null,
+      inStock: false,
+    };
   }
 
   const vatBp = source[0] ? toBasisPoints(source[0].vatRate) : 0;
@@ -114,6 +122,7 @@ function cardPricing(variants: VariantForPricing[], discountPercent: number) {
   return {
     netKurus: best.net,
     grossKurus: best.gross,
+    listNetKurus: best.discount > 0 ? bestList : null,
     listGrossKurus: best.discount > 0 ? listGross : null,
     inStock,
   };
@@ -261,8 +270,19 @@ export interface ProductDetailVariant {
   label: string;
   netKurus: number;
   grossKurus: number;
+  listNetKurus: number | null;
   listGrossKurus: number | null;
   available: number;
+}
+
+/**
+ * Vitrinde gösterilen görsel. `optionValueId` doluysa görsel belirli bir
+ * seçenek değerine (pratikte renge) aittir; o renk seçildiğinde gösterilir.
+ */
+export interface ProductDetailImage {
+  url: string;
+  alt: string | null;
+  optionValueId: string | null;
 }
 
 export interface ProductDetail {
@@ -273,7 +293,7 @@ export interface ProductDetail {
   description: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
-  images: Array<{ url: string; alt: string | null }>;
+  images: ProductDetailImage[];
   optionTypes: Array<{
     id: string;
     name: string;
@@ -297,7 +317,10 @@ export async function getProductDetail(
       description: true,
       metaTitle: true,
       metaDescription: true,
-      images: { orderBy: { sortOrder: "asc" }, select: { url: true, alt: true } },
+      images: {
+        orderBy: { sortOrder: "asc" },
+        select: { url: true, alt: true, optionValueId: true },
+      },
       categories: { select: { categoryId: true, isPrimary: true } },
       variants: {
         where: { isActive: true },
@@ -382,6 +405,7 @@ export async function getProductDetail(
         "Tek seçenek",
       netKurus: price.net,
       grossKurus: price.gross,
+      listNetKurus: price.discount > 0 ? price.listNet : null,
       listGrossKurus: price.discount > 0 ? listGross : null,
       available: Math.max(0, variant.stock - variant.reserved),
     };

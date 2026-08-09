@@ -19,22 +19,17 @@ import { cn } from "@/lib/utils";
 export function ProductBuyBox({
   product,
   whatsappNumber,
+  selected,
+  onSelect,
 }: {
   product: ProductDetail;
   whatsappNumber: string | null;
+  /** Seçenek tipi id -> seçilen değer id. Galeriyle ortak, ProductView tutar. */
+  selected: Record<string, string>;
+  onSelect: (next: (current: Record<string, string>) => Record<string, string>) => void;
 }) {
   const singleVariant = product.variants.length === 1 ? product.variants[0] : null;
 
-  const [selected, setSelected] = useState<Record<string, string>>(() =>
-    singleVariant
-      ? Object.fromEntries(
-          product.optionTypes.map((type, index) => [
-            type.id,
-            singleVariant.optionValueIds[index] ?? "",
-          ]),
-        )
-      : {},
-  );
   const [quantity, setQuantity] = useState(1);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -92,24 +87,24 @@ export function ProductBuyBox({
 
   return (
     <div className="space-y-6">
-      {/* fiyat */}
+      {/* fiyat — toptan iş; öne çıkan tutar KDV HARİÇ olan */}
       <div>
-        {priceSource.listGrossKurus ? (
+        {priceSource.listNetKurus ? (
           <p className="tnum text-sm text-muted line-through">
-            {formatKurus(priceSource.listGrossKurus)}
+            {formatKurus(priceSource.listNetKurus)}
           </p>
         ) : null}
         <p className="tnum font-display text-3xl text-ink">
-          {formatKurus(priceSource.grossKurus)}
+          {formatKurus(priceSource.netKurus)}
         </p>
         <p className="mt-1 text-sm text-muted">
-          KDV dahil · <strong className="font-medium text-ink-soft">1 düzine</strong>{" "}
+          KDV hariç · <strong className="font-medium text-ink-soft">1 Düzine</strong>{" "}
           fiyatıdır
         </p>
         <p className="tnum text-xs text-muted">
-          KDV hariç {formatKurus(priceSource.netKurus)}
+          KDV dahil {formatKurus(priceSource.grossKurus)}
         </p>
-        {priceSource.listGrossKurus ? (
+        {priceSource.listNetKurus ? (
           <p className="mt-1 inline-block rounded bg-ok-soft px-2 py-0.5 text-xs font-medium text-ok">
             Size özel bayi fiyatı
           </p>
@@ -134,7 +129,7 @@ export function ProductBuyBox({
                       disabled={disabled}
                       aria-pressed={active}
                       onClick={() => {
-                        setSelected((current) => ({ ...current, [type.id]: value.id }));
+                        onSelect((current) => ({ ...current, [type.id]: value.id }));
                         setQuantity(1);
                       }}
                       className={cn(
@@ -191,7 +186,7 @@ export function ProductBuyBox({
                 +
               </button>
             </div>
-            <span className="text-xs text-muted">düzine</span>
+            <span className="text-xs text-muted">Düzine</span>
           </div>
         ) : null}
 

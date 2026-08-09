@@ -54,6 +54,14 @@ export function ProductForm({
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  // Görsellere renk atayabilmek için ürünün varyantlarında gerçekten
+  // kullanılan renk değerleri; katalogdaki tüm renkler değil.
+  const usedValueIds = new Set(form.variants.flatMap((variant) => variant.optionValueIds));
+  const colorValues =
+    optionTypes
+      .find((type) => type.name.trim().toLocaleLowerCase("tr") === "renk")
+      ?.values.filter((value) => usedValueIds.has(value.id)) ?? [];
+
   function handleName(value: string) {
     setForm((current) => ({
       ...current,
@@ -112,6 +120,7 @@ export function ProductForm({
           id: image.id,
           url: image.url,
           alt: image.alt,
+          optionValueId: image.optionValueId ?? null,
         })),
         variants: form.variants.map((variant) => ({
           id: variant.id,
@@ -294,6 +303,7 @@ export function ProductForm({
         <div className="p-5">
           <ImageUploader
             images={form.images}
+            colorValues={colorValues}
             onChange={(images) => set("images", images)}
           />
         </div>

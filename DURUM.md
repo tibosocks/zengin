@@ -71,12 +71,34 @@ Marka: Zengin. Tibo/tibosocks bırakıldı, sadece veri kaynağı olarak kullan�
   kalem snapshot'ı, müşteri telefondan upsert, panel bildirimi
 - ❌ Sabit sayfalar (hakkımızda, iletişim, KVKK) yok
 
+### Vitrin düzeltmeleri (2026-08-09)  ✅
+- **Ürün detayında tek görsel.** Küçük görsel şeridi kaldırıldı; Ticimax'ten
+  aynı fotoğrafın 7-8 kopyası geldiği için şerit tekrar gösteriyordu
+- **Renk seçimi görseli değiştiriyor.** `ProductImage.optionValueId` artık
+  kullanılıyor. Seçim durumu `product-view.tsx` içinde; galeri ile satın alma
+  kutusunun ortak üst bileşeni. Açılışta kapak görselinin rengi seçili gelir,
+  böylece listede görülen fotoğrafla ürüne girilince görülen aynı olur
+- **Fiyat gösterimi KDV hariç öne çıkıyor.** Detayda büyük tutar KDV hariç,
+  altında "KDV hariç · 1 Düzine fiyatıdır", onun altında KDV dahil tutar.
+  Kartlarda da KDV hariç tutar + "KDV hariç · Düzine"
+- Panelde her görselin altında renk seçici var (ürünün kendi renkleriyle
+  sınırlı); yeni yüklenen görseller de renge bağlanabiliyor
+
 ---
 
 ## Görseller — tamam ✅
 
 561 görsel R2'ye aktarıldı, 222 ürünün tamamının görseli var. Her görselin
 `sourceUrl`'i kayıtlı, aktarım tekrar çalıştırılabilir.
+
+**Renk etiketleri işlendi.** Ticimax'in `UrunResimleri.xml` dosyasındaki
+`VaryasyonID`, `Urunler.xml` içindeki varyant id'siyle aynı — yani hangi
+görselin hangi renge ait olduğu kaynakta yazıyor. `scripts/gorsel-renk-
+etiketle.ts` bunu `sourceUrl` üzerinden eşleyip `optionValueId`'yi dolduruyor.
+Çok renkli 50 ürünün 180 görseli etiketlendi; 48'inde her rengin görseli var.
+Eksik ikisi (`tenis-penye-kadin-soket`, `silikonlu-dikissiz-cocuk-babet`)
+Ticimax'te o renklerin fotoğrafı olmadığı için boş; kapak görseline düşüyorlar,
+panelden elle bağlanabilir.
 
 **Doğrulanmayan tek şey:** görsellerin tarayıcıda açılması. Geliştirme
 ortamının ağ filtresi `r2.dev` alan adına izin vermiyor, bu yüzden buradan
@@ -148,6 +170,9 @@ ilerleme görünmez olur. Log dosyasına yazıp `tail -f` ile izleyin.
 
 **Düzine birimi her fiyatın yanında yazılmalı.** Yoksa müşteri tek çift sanar.
 
+**Vitrinde öne çıkan tutar KDV HARİÇ.** Toptan iş; bayi KDV hariç konuşuyor.
+KDV dahil tutar hemen altında küçük yazıyla verilir, gizlenmez.
+
 **`"use server"` dosyaları sadece async fonksiyon export edebilir.** Sabitler
 ve saf yardımcılar ayrı modülde olmalı (`order-status.ts`, `phone.ts`).
 Bu kural iki kez derlemeyi kırdı.
@@ -204,5 +229,7 @@ npx tsx scripts/import-ticimax.ts            # kuru çalışma (yazmaz)
 npx tsx scripts/import-ticimax.ts --uygula   # gerçekten aktar
 npx tsx scripts/import-catalog.ts <x.xlsx>   # Excel'den aktar
 npx tsx scripts/fix-category-slugs.ts        # çakışan slug onarımı
+npx tsx --env-file=.env scripts/gorsel-renk-etiketle.ts --kuru  # görsel-renk eşlemesi
+npx tsx --env-file=.env scripts/gorsel-renk-etiketle.ts         # ve yaz
 npm run brand:build                          # logo/favicon setleri
 ```

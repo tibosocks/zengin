@@ -26,13 +26,19 @@ export interface ImageDraft {
   id?: string;
   url: string;
   alt?: string;
+  /** Görsel bir renge aitse o renk seçeneğinin değeri. Vitrinde o renk
+      seçildiğinde bu görsel gösterilir. */
+  optionValueId?: string | null;
 }
 
 export function ImageUploader({
   images,
+  colorValues,
   onChange,
 }: {
   images: ImageDraft[];
+  /** Ürünün varyantlarında kullanılan renk değerleri. Boşsa renk seçimi çıkmaz. */
+  colorValues: Array<{ id: string; value: string }>;
   onChange: (next: ImageDraft[]) => void;
 }) {
   const [uploading, setUploading] = useState(false);
@@ -153,6 +159,9 @@ export function ImageUploader({
         <>
           <p className="text-xs text-muted">
             İlk görsel kapak olarak kullanılır. Sürükleyerek sırayı değiştirin.
+            {colorValues.length > 0
+              ? " Renk seçilen görsel, vitrinde o renk seçildiğinde gösterilir."
+              : null}
           </p>
           <DndContext
             sensors={sensors}
@@ -169,6 +178,14 @@ export function ImageUploader({
                     key={image.key}
                     image={image}
                     isCover={index === 0}
+                    colorValues={colorValues}
+                    onColorChange={(optionValueId) =>
+                      onChange(
+                        images.map((item) =>
+                          item.key === image.key ? { ...item, optionValueId } : item,
+                        ),
+                      )
+                    }
                     onRemove={() =>
                       onChange(images.filter((item) => item.key !== image.key))
                     }
@@ -186,10 +203,14 @@ export function ImageUploader({
 function ImageTile({
   image,
   isCover,
+  colorValues,
+  onColorChange,
   onRemove,
 }: {
   image: ImageDraft;
   isCover: boolean;
+  colorValues: Array<{ id: string; value: string }>;
+  onColorChange: (optionValueId: string | null) => void;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -203,39 +224,57 @@ function ImageTile({
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className="group relative aspect-square overflow-hidden rounded-md border border-line bg-surface-alt"
+      className="space-y-1"
     >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        aria-label="Sürükleyerek sırala"
-        className="block size-full cursor-grab touch-none active:cursor-grabbing"
-      >
-        <Image
-          src={image.url}
-          alt={image.alt ?? ""}
-          fill
-          sizes="160px"
-          className="object-cover"
-          unoptimized
-        />
-      </button>
+      <div className="group relative aspect-square overflow-hidden rounded-md border border-line bg-surface-alt">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Sürükleyerek sırala"
+          className="block size-full cursor-grab touch-none active:cursor-grabbing"
+        >
+          <Image
+            src={image.url}
+            alt={image.alt ?? ""}
+            fill
+            sizes="160px"
+            className="object-cover"
+            unoptimized
+          />
+        </button>
 
-      {isCover ? (
-        <span className="absolute top-1 left-1 rounded bg-ink px-1.5 py-0.5 text-[10px] font-medium text-white">
-          Kapak
-        </span>
+        {isCover ? (
+          <span className="absolute top-1 left-1 rounded bg-ink px-1.5 py-0.5 text-[10px] font-medium text-white">
+            Kapak
+          </span>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Görseli kaldır"
+          className="absolute top-1 right-1 rounded bg-white/90 p-1 text-ink-soft opacity-0 transition-opacity group-hover:opacity-100 hover:text-danger focus-visible:opacity-100"
+        >
+          <X className="size-3.5" />
+        </button>
+      </div>
+
+      {colorValues.length > 0 ? (
+        <select
+          value={image.optionValueId ?? ""}
+          onChange={(event) => onColorChange(event.target.value || null)}
+          aria-label="Görselin rengi"
+          className="w-full rounded border border-line bg-white px-1.5 py-1 text-xs text-ink-soft"
+        >
+          <option value="">Renk yok</option>
+          {colorValues.map((value) => (
+            <option key={value.id} value={value.id}>
+              {value.value}
+            </option>
+          ))}
+        </select>
       ) : null}
-
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label="Görseli kaldır"
-        className="absolute top-1 right-1 rounded bg-white/90 p-1 text-ink-soft opacity-0 transition-opacity group-hover:opacity-100 hover:text-danger focus-visible:opacity-100"
-      >
-        <X className="size-3.5" />
-      </button>
     </li>
   );
 }

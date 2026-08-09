@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProductGallery } from "@/components/shop/product-gallery";
-import { ProductBuyBox } from "@/components/shop/product-buy-box";
 import { ProductGrid } from "@/components/shop/product-card";
+import { ProductView } from "@/components/shop/product-view";
 import { getCustomerSession } from "@/lib/auth";
 import { formatKurus } from "@/lib/price";
 import { prisma } from "@/lib/prisma";
@@ -84,22 +83,7 @@ export default async function ProductPage({ params }: PageProps<"/urun/[slug]">)
         <span className="text-ink">{product.name}</span>
       </nav>
 
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <ProductGallery images={product.images} productName={product.name} />
-
-        <div>
-          <p className="text-sm text-muted">Zengin</p>
-          <h1 className="mt-1 mb-4 font-display text-2xl text-ink sm:text-3xl">
-            {product.name}
-          </h1>
-
-          {product.shortDesc ? (
-            <p className="mb-5 text-ink-soft">{product.shortDesc}</p>
-          ) : null}
-
-          <ProductBuyBox product={product} whatsappNumber={whatsapp?.value ?? null} />
-        </div>
-      </div>
+      <ProductView product={product} whatsappNumber={whatsapp?.value ?? null} />
 
       {product.description ? (
         <section className="mt-12 max-w-3xl">

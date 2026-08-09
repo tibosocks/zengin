@@ -59,6 +59,7 @@ export default async function EditProductPage({
           id: image.id,
           url: image.url,
           alt: image.alt ?? undefined,
+          optionValueId: image.optionValueId,
         })),
         variants: product.variants.map((variant) => ({
           key: variant.id,
