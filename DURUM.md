@@ -252,15 +252,39 @@ Bu kural iki kez derlemeyi kırdı.
 
 ## Sıradaki işler
 
-1. **Railway deploy'unu düzelt** (kullanıcı) — her şey yerelde çalışıyor,
-   canlıya çıkmıyor
-2. **E-posta bildirimi** — Resend kurulumu bekliyor (SETUP.md adım 7).
+1. **Üç sabit sayfanın içeriğini oluştur** — kod hazır, kayıtlar yok.
+   `scripts/sabit-sayfalar.ts` çalıştırılmalı; DB'ye dışarıdan erişim
+   kapatıldığı için buradan çalıştırılamıyor (aşağıya bakın)
+2. **KVKK metnindeki [köşeli parantezli] alanları doldur** — şirket unvanı,
+   adres, VKN, e-posta. Yayına almadan önce hukuk kontrolü şart
+3. **E-posta bildirimi** — Resend kurulumu bekliyor (SETUP.md adım 7).
    Panel içi bildirim çalışıyor, e-posta kanalı yok
-3. **Sabit sayfalar** — hakkımızda, iletişim, KVKK. Footer'da bağlantılar
-   var ama sayfalar yok (`/sayfa/[slug]`)
-4. SEO: sitemap.xml, robots.txt
-5. DNS geçişi ve yayın öncesi kontrol listesi ([SETUP.md](SETUP.md))
-6. `cdn.zenginsocks.com` — r2.dev üretim için önerilmiyor
+4. **Google Search Console** — site ve `sitemap.xml` eklenmeli
+5. `cdn.zenginsocks.com` — r2.dev üretim için önerilmiyor
+6. Yayın öncesi kontrol listesinin kalanı ([SETUP.md](SETUP.md))
+
+---
+
+## Sabit sayfalar + SEO  ✅ (2026-08-09)
+
+`Page` modeli şemada duruyordu ama hiç kullanılmamıştı; footer'daki üç
+bağlantı 404 veriyordu. Eklenenler:
+
+- `/sayfa/[slug]` — genel sayfa rotası, içerik panelden gelen HTML
+- `/panel/sayfalar` — liste, ekleme, düzenleme, silme. Panel menüsüne girdi
+- `src/lib/actions/pages.ts` — `savePage` / `deletePage`
+- `src/app/sitemap.ts` — kategori + ürün + sayfa adresleri, DB'den üretiliyor
+- `src/app/robots.ts` — `/panel`, `/hesabim`, `/sepet`, `/siparis`, `/arama`
+  dizine kapalı; sitemap adresi bildiriliyor
+- `scripts/sabit-sayfalar.ts` — hakkımızda / iletişim / KVKK içeriklerini
+  oluşturur. **Var olan sayfayı ezmez**, `--degistir` verilmedikçe atlar.
+  İletişim sayfası telefon/adres/WhatsApp'ı Ayarlar'dan okur
+
+**Postgres Public Access kapatıldı** (doğru olan buydu). Yan etkisi: bu
+makineden `npx tsx scripts/...` ile veritabanına bağlanılamıyor, `P1017
+ConnectionClosed` alınıyor. Veri betiği çalıştırmak gerektiğinde ya Railway
+CLI (`railway run npx tsx scripts/...`) kullanın ya da Public Access'i geçici
+açıp iş bitince kapatın.
 
 ---
 
@@ -278,5 +302,7 @@ npx tsx scripts/import-catalog.ts <x.xlsx>   # Excel'den aktar
 npx tsx scripts/fix-category-slugs.ts        # çakışan slug onarımı
 npx tsx --env-file=.env scripts/gorsel-renk-etiketle.ts --kuru  # görsel-renk eşlemesi
 npx tsx --env-file=.env scripts/gorsel-renk-etiketle.ts         # ve yaz
+npx tsx --env-file=.env scripts/sabit-sayfalar.ts              # 3 sabit sayfa
+railway run npx tsx scripts/sabit-sayfalar.ts   # Public Access kapalıyken
 npm run brand:build                          # logo/favicon setleri
 ```

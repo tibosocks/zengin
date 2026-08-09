@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  FileText,
   FolderTree,
   LayoutDashboard,
   LogOut,
@@ -27,6 +28,7 @@ const NAV = [
   { href: "/panel/urunler", label: "Ürünler", icon: Package },
   { href: "/panel/kategoriler", label: "Kategoriler", icon: FolderTree },
   { href: "/panel/musteriler", label: "Müşteriler", icon: Users },
+  { href: "/panel/sayfalar", label: "Sayfalar", icon: FileText },
   { href: "/panel/ayarlar", label: "Ayarlar", icon: Settings },
 ];
 
