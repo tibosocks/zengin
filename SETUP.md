@@ -147,8 +147,8 @@ Alan adı GoDaddy'de **kayıtlı kalır**, sadece DNS yönetimi değişir.
 5. Taranan kayıtları yukarıdaki tabloyla karşılaştırın, eksikleri elle ekleyin
 6. MX ve `mail`/`smtp`/`imap` kayıtları **Proxy KAPALI (gri bulut)** olmalı —
    proxy'li posta kaydı çalışmaz
-7. Kök ve `www` kayıtlarını **şimdilik eski IP'de bırakın**; böylece
-   nameserver değişince site kesintiye uğramaz
+7. Kök ve `www` kayıtlarını **şimdilik eski IP'de bırakın** (`A 104.16.109.26`,
+   Proxy kapalı); böylece nameserver değişince site kesintiye uğramaz
 
 **Aşama 2 · Nameserver değişimi (yayılma başlar)**
 
@@ -160,14 +160,31 @@ Alan adı GoDaddy'de **kayıtlı kalır**, sadece DNS yönetimi değişir.
 9. Yayılma 15 dk – 2 saat (nadiren 24 saat). Cloudflare "Active" diyene kadar
    bekleyin
 
+**Railway'in istediği kayıtlar** (2026-08-09'da alındı, port 8080):
+
+| Tip | Ad | Değer |
+|---|---|---|
+| CNAME | `@` | `81ke9vm2.up.railway.app` |
+| TXT | `_railway-verify` | `railway-verify=772b2321fcf0d47a0f60d632dc…` |
+| CNAME | `www` | `oh6mete6.up.railway.app` |
+| TXT | `_railway-verify.www` | `railway-verify=3c13393eea6d59f8e8f26592b8…` |
+
+> TXT değerleri burada kısaltılmış. **Railway arayüzündeki kopyala düğmesiyle
+> tam değeri alın**, elle yazmayın — tek karakter hatası doğrulamayı bozar.
+
 **Aşama 3 · Railway'e yönlendir (asıl geçiş anı)**
 
-10. Cloudflare DNS'te kök `A 104.16.109.26` kaydını **silin**, yerine:
-    - `CNAME  @    → <railway-hedefi>`  · Proxy **açık** (turuncu)
-    - `CNAME  www  → <railway-hedefi>`  · Proxy **açık**
-11. Cloudflare → **SSL/TLS → Overview → Full (strict)**.
-    "Flexible" bırakılırsa sonsuz yönlendirme döngüsü olur
-12. Railway'de alan adı **Active / sertifika verildi** olana kadar bekleyin
+10. İki `_railway-verify` TXT kaydını Cloudflare'e **hemen** ekleyin; trafiği
+    etkilemez, doğrulamayı hızlandırır
+11. Cloudflare DNS'te kök `A 104.16.109.26` kaydını **silin**, yerine
+    yukarıdaki iki CNAME'i yazın — **Proxy KAPALI (gri bulut)** başlayın.
+    Cloudflare kök CNAME'i zaten düzleştirir (CNAME flattening), gri bulutta
+    da apex çalışır
+12. Railway'de iki alan adı da **Active / sertifika verildi** olana kadar
+    bekleyin. Proxy kapalıyken Railway sertifikayı sorunsuz alır
+13. *(İsteğe bağlı, sonra)* Proxy'yi turuncuya çevirecekseniz **önce**
+    Cloudflare → SSL/TLS → **Full (strict)** yapın. "Flexible" kalırsa sonsuz
+    yönlendirme döngüsü olur
 
 **Aşama 4 · Doğrulama**
 

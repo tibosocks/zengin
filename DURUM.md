@@ -141,8 +141,14 @@ Tekrar takılırsa çözüm servis → Settings → Source:
 
 Alan adı GoDaddy'de kayıtlı ama **DNS GoDaddy'de değil**, Ticimax bayisi
 Nicegrup'ta (`ns21/ns22.nicegrup.com`). Kök `104.16.109.26` ile hâlâ eski
-Ticimax sitesini gösteriyor. Railway'de custom domain **henüz eklenmedi**
-(`Host: zenginsocks.com` ile istek 404 dönüyor).
+Ticimax sitesini gösteriyor.
+
+Railway'de iki custom domain **eklendi** (port 8080), ikisi de "Waiting for
+DNS" durumunda — beklenen durum, alan adı hâlâ Nicegrup'ta. İstediği CNAME ve
+`_railway-verify` TXT kayıtları SETUP.md bölüm 6'daki tabloda.
+
+Sıradaki adım: Cloudflare'a alan adını ekleyip nameserver'ları GoDaddy'den
+çevirmek.
 
 Adım adım runbook ve bugünkü kayıt tablosu [SETUP.md](SETUP.md) bölüm 6'da.
 
