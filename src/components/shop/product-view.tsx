@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ProductBuyBox } from "@/components/shop/product-buy-box";
 import { ProductGallery } from "@/components/shop/product-gallery";
@@ -26,6 +26,23 @@ export function ProductView({
   );
 
   const image = pickImage(product.images, colorType ? selected[colorType.id] : null);
+
+  // Diğer renklerin görselleri arka planda indirilsin. r2.dev yavaş ve
+  // önbelleksiz; hazırlamazsak renk değiştirildiğinde yeni görsel inene
+  // kadar ekranda ESKİ renk durmaya devam ediyor ve değişmemiş gibi
+  // görünüyor. (DURUM.md — cdn.zenginsocks.com'a geçilince hafifleyecek.)
+  const others = colorType
+    ? product.images.filter((item) => item.url !== image?.url && item.optionValueId)
+    : [];
+  const otherUrls = others.map((item) => item.url).join("|");
+
+  useEffect(() => {
+    if (otherUrls === "") return;
+    for (const url of otherUrls.split("|")) {
+      const preload = new window.Image();
+      preload.src = url;
+    }
+  }, [otherUrls]);
 
   return (
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">

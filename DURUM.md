@@ -83,6 +83,12 @@ Marka: Zengin. Tibo/tibosocks bırakıldı, sadece veri kaynağı olarak kullan�
   Kartlarda da KDV hariç tutar + "KDV hariç · Düzine"
 - Panelde her görselin altında renk seçici var (ürünün kendi renkleriyle
   sınırlı); yeni yüklenen görseller de renge bağlanabiliyor
+- **Renk değişince görsel gerçekten değişsin diye iki önlem var.** `<Image>`
+  bileşenine `key={url}` verildi — aynı `<img>` düğümü yeniden kullanılırsa
+  tarayıcı yeni dosya inene kadar eskisini çizmeye devam ediyor ve renk
+  değişmemiş gibi görünüyor. Ayrıca diğer renklerin görselleri açılışta
+  arka planda indiriliyor; r2.dev yavaş ve önbeleksiz olduğu için bekleme
+  gözle görülüyordu
 
 ---
 

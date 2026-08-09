@@ -26,7 +26,11 @@ export function ProductGallery({
 
   return (
     <div className="relative aspect-square overflow-hidden rounded-card border border-line bg-surface-alt">
+      {/* key şart: aynı <img> düğümü yeniden kullanılırsa tarayıcı yeni
+          görsel inene kadar eskisini çizmeye devam ediyor, renk
+          değiştirilmemiş gibi görünüyor. */}
       <Image
+        key={image.url}
         src={image.url}
         alt={image.alt ?? productName}
         fill
