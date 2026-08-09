@@ -261,11 +261,37 @@ Bu kural iki kez derlemeyi kırdı.
    scripts/sabit-sayfalar.ts --degistir` ile iletişim sayfasını tazeleyin
 2. **KVKK metnindeki [köşeli parantezli] alanları doldur** — şirket unvanı,
    adres, VKN, e-posta. Yayına almadan önce hukuk kontrolü şart
-3. **E-posta bildirimi** — Resend kurulumu bekliyor (SETUP.md adım 7).
-   Panel içi bildirim çalışıyor, e-posta kanalı yok
+3. **Resend anahtarını gir** — e-posta kodu yazıldı ve bağlandı, sadece
+   `RESEND_API_KEY` + `MAIL_FROM` ve alan adı doğrulaması eksik
+   (SETUP.md adım 7). Anahtar yokken gönderim sessizce atlanıyor
 4. **Google Search Console** — site ve `sitemap.xml` eklenmeli
 5. `cdn.zenginsocks.com` — r2.dev üretim için önerilmiyor
 6. Yayın öncesi kontrol listesinin kalanı ([SETUP.md](SETUP.md))
+
+---
+
+## E-posta bildirimi  ✅ kod hazır, anahtar bekliyor (2026-08-09)
+
+`src/lib/email.ts` — Resend'in HTTP API'sine düz `fetch` ile gidiyor, SDK
+eklenmedi. İki şablon: mağazaya **"Yeni sipariş"**, müşteriye
+**"Siparişiniz alındı"** (müşteri e-posta vermişse).
+
+Bağlandığı yer `placeOrder`, **işlem tamamlandıktan sonra**. Tasarım kuralı:
+*e-posta bir siparişi asla bozamaz.*
+- `RESEND_API_KEY` yoksa gönderim sessizce atlanıyor (`skipped: true`)
+- `sendEmail` kendi içinde yakalıyor, 10 sn zaman aşımı var
+- Çağrı bloğunun tamamı ayrıca `try/catch` içinde — alıcıları okurken
+  veritabanına gidiliyor, o yol da hata verirse müşteri siparişi alınmış
+  olmasına rağmen hata ekranı görürdü
+
+Alıcılar önce Panel → Ayarlar'daki listeden, o boşsa
+`ORDER_NOTIFICATION_EMAILS` değişkeninden okunuyor.
+
+Şablonlar render edilip gözle doğrulandı. **Gerçek gönderim denenmedi** —
+anahtar yok. Anahtar girilince bir test siparişiyle doğrulanmalı.
+
+`server-only` importu var; bu modül CLI'dan kullanılmıyor, doğru yer. (Düz
+Node'da gerçekten hata fırlattığı bu oturumda tekrar doğrulandı.)
 
 ---
 

@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getCustomerSession } from "@/lib/auth";
+import {
+  sendNewOrderNotification,
+  sendOrderConfirmation,
+  type OrderMailData,
+} from "@/lib/email";
 import { kurusToDecimalString, toBasisPoints, toKurus } from "@/lib/price";
 import { normalizePhone } from "@/lib/phone";
 import { prisma } from "@/lib/prisma";
@@ -80,10 +85,12 @@ export async function placeOrder(
   const session = await getCustomerSession();
   const { discountPercent } = await getViewerDiscount(session?.customerId);
 
-  let orderNo: string;
+  // E-posta işlem BİTTİKTEN sonra gönderiliyor; gönderim hatası siparişi
+  // geri almamalı. Bu yüzden gereken veri işlemden dışarı taşınıyor.
+  let mail: OrderMailData;
 
   try {
-    orderNo = await prisma.$transaction(async (tx) => {
+    mail = await prisma.$transaction(async (tx) => {
       // Stok kontrolü ve rezervasyon aynı işlemde olmalı; arada başka bir
       // sipariş girerse son stoğu iki kişiye satmış oluruz.
       const variants = await tx.variant.findMany({
@@ -238,7 +245,24 @@ export async function placeOrder(
         },
       });
 
-      return order.orderNo;
+      return {
+        orderNo: order.orderNo,
+        orderId: order.id,
+        customerName: parsed.data.fullName,
+        phone,
+        email: parsed.data.email || null,
+        companyName: parsed.data.companyName || null,
+        note: parsed.data.note || null,
+        items: items.map((item) => ({
+          productName: item.productName,
+          optionsText: item.optionsText,
+          quantity: item.quantity,
+          lineTotalKurus: item.lineTotal,
+        })),
+        subtotalKurus: subtotal,
+        vatKurus: vatTotal,
+        grandTotalKurus: subtotal + vatTotal,
+      } satisfies OrderMailData;
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
@@ -267,7 +291,26 @@ export async function placeOrder(
   revalidatePath("/panel");
   revalidatePath("/sepet");
 
+  // Sipariş çoktan kaydedildi. Buradan hiçbir hata dışarı sızmamalı —
+  // sızarsa müşteri, siparişi alınmış olmasına rağmen hata ekranı görür.
+  // sendEmail kendi içinde yakalıyor ama alıcıları okurken veritabanına
+  // gidiliyor; o yol da kapalı olsun diye tamamı sarmalandı.
+  try {
+    const [storeMail, customerMail] = await Promise.all([
+      sendNewOrderNotification(mail),
+      sendOrderConfirmation(mail),
+    ]);
+    if (!storeMail.ok && !storeMail.skipped) {
+      console.error(`[siparis ${mail.orderNo}] mağaza bildirimi gitmedi:`, storeMail.error);
+    }
+    if (!customerMail.ok && !customerMail.skipped) {
+      console.error(`[siparis ${mail.orderNo}] müşteri özeti gitmedi:`, customerMail.error);
+    }
+  } catch (error) {
+    console.error(`[siparis ${mail.orderNo}] e-posta katmanı çöktü:`, error);
+  }
+
   // redirect() hata fırlatarak çalışır; try/catch dışında olmalı yoksa
   // yönlendirme "sipariş oluşturulamadı" hatası gibi yakalanır.
-  redirect(`/siparis-alindi?no=${encodeURIComponent(orderNo)}`);
+  redirect(`/siparis-alindi?no=${encodeURIComponent(mail.orderNo)}`);
 }

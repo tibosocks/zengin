@@ -215,10 +215,26 @@ Bir de kendinize `info@zenginsocks.com`'dan ve o adrese mail atıp
 
 ## 7. E-posta — Resend  *(Faz 4'te gerekecek)*
 
+**Kod tarafı hazır.** `src/lib/email.ts` yazıldı ve sipariş akışına bağlandı;
+anahtar girildiği an çalışmaya başlar. Anahtar yokken gönderim sessizce
+atlanır, sipariş normal şekilde oluşur.
+
 1. [resend.com](https://resend.com) → hesap açın → **Domains → Add Domain**
    → `zenginsocks.com`
-2. Verdiği SPF/DKIM/DMARC kayıtlarını Cloudflare DNS'e ekleyin
+2. Verdiği SPF/DKIM/DMARC kayıtlarını Cloudflare DNS'e ekleyin.
+   **Dikkat:** alan adında zaten bir SPF kaydı var
+   (`v=spf1 include:_spf.nicegrup.com -all`). İkinci bir SPF TXT açmayın,
+   tek kayıtta birleştirin:
+   `v=spf1 include:_spf.nicegrup.com include:_spf.resend.com -all`
 3. **API Keys → Create** → değeri `RESEND_API_KEY` olarak Railway'e girin
+4. `MAIL_FROM` değişkenini doğrulanmış alan adıyla girin, ör.
+   `Zengin Socks <siparis@zenginsocks.com>`
+5. Alıcıları Panel → Ayarlar → bildirim alıcıları alanından yönetin
+   (`ORDER_NOTIFICATION_EMAILS` değişkeni sadece o boşsa devreye girer)
+
+Anahtar girildikten sonra bir test siparişi verip iki e-postanın da
+ulaştığını doğrulayın: mağazaya "Yeni sipariş", müşteriye "Siparişiniz
+alındı".
 
 **Neden alan adı doğrulaması şart:** Doğrulanmamış alan adından gönderilen
 sipariş bildirimleri spam klasörüne düşer ve siparişi kaçırırsınız.
