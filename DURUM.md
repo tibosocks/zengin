@@ -36,6 +36,13 @@ Marka: Zengin. Tibo/tibosocks bırakıldı, sadece veri kaynağı olarak kullan�
 - Excel içe/dışa aktarma: `/panel/urunler/aktar`
 - Aktarım **idempotent** — tekrar çalıştırmak kopya üretmez
 
+### Panel tamamlayıcıları  ✅
+- `/panel/bildirimler` — tür ikonları, okunmamış vurgusu, zil sayacı,
+  tümünü okundu işaretle. 30 günden eski okunmuşları silen yardımcı var
+- `/panel/ayarlar` — site bilgileri, WhatsApp numarası, KDV oranı,
+  girişsiz fiyat görünürlüğü, varsayılan bayi iskontosu, bildirim
+  alıcıları, kritik stok eşiği + **yönetici parolası değiştirme**
+
 ### Faz 5 — bayi sistemi  ✅
 - `/bayi-basvurusu` — firma bilgileriyle başvuru, `onay_bekliyor` kaydı
   oluşturur ve panele bildirim düşer. Kendiliğinden aktifleşmez
@@ -151,7 +158,7 @@ Bu kural iki kez derlemeyi kırdı.
 
 | Konu | Durum |
 |---|---|
-| Yönetici parolası `zengin2026!` | Geçici, sohbette açıkta. Kullanıcı değiştirmeli — panelde henüz kullanıcı yönetimi ekranı yok |
+| Yönetici parolası `zengin2026!` | Geçici ve sohbette açıkta. **Panel → Ayarlar → Parolamı değiştir** ile değiştirilmeli |
 | Postgres Public Access açık | Geliştirme için. Yayından önce kapatılmalı |
 | GitHub deposu public | `tibosocks/zengin`. Private yapılması önerildi |
 | "Kadın Penye Soket Puantiyeli" | İki varyantı da `Renk: Çok Renkli`; ikincisi (CRP613) aktarılmadı. Ticimax'te renk adları ayrılırsa gelir |
@@ -175,13 +182,13 @@ Bu kural iki kez derlemeyi kırdı.
 
 1. **Railway deploy'unu düzelt** (kullanıcı) — her şey yerelde çalışıyor,
    canlıya çıkmıyor
-2. **Bildirimler** — panel içi zil (`/panel/bildirimler` şu an 404) +
-   e-posta (Resend). Bildirim kayıtları zaten oluşuyor, görüntüleyen
-   ekran yok
-3. **Ayarlar ekranı** (`/panel/ayarlar` şu an 404) — WhatsApp numarası,
-   KDV oranı, bildirim alıcıları, yönetici parolası
-4. Sabit sayfalar (hakkımızda, iletişim, KVKK), SEO/sitemap — Faz 6
+2. **E-posta bildirimi** — Resend kurulumu bekliyor (SETUP.md adım 7).
+   Panel içi bildirim çalışıyor, e-posta kanalı yok
+3. **Sabit sayfalar** — hakkımızda, iletişim, KVKK. Footer'da bağlantılar
+   var ama sayfalar yok (`/sayfa/[slug]`)
+4. SEO: sitemap.xml, robots.txt
 5. DNS geçişi ve yayın öncesi kontrol listesi ([SETUP.md](SETUP.md))
+6. `cdn.zenginsocks.com` — r2.dev üretim için önerilmiyor
 
 ---
 
