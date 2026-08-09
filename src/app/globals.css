@@ -87,4 +87,32 @@ input[type="number"] {
   a[href]::after {
     content: "";
   }
+
+  /* Sipariş PDF çıktısı: A4, dar kenar boşluğu. Sayfa numarası ve tarayıcı
+     üstbilgisi kâğıda girmesin diye @page kullanılıyor. */
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  .cikti {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  /* Bir ürün satırı iki sayfaya bölünmesin */
+  .cikti tr {
+    break-inside: avoid;
+  }
+
+  .cikti thead {
+    display: table-header-group;
+  }
+
+  /* Tarayıcı arka plan ve kenarlıkları varsayılan olarak basmıyor */
+  .cikti,
+  .cikti * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

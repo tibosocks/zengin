@@ -270,6 +270,29 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Sipariş PDF çıktısı  ✅ (2026-08-09)
+
+Sipariş detayında **"Siparişi PDF oluştur"** düğmesi; yeni sekmede A4 düzenli
+çıktı sayfası açılıp yazdırma penceresini kendisi tetikliyor, kullanıcı
+"PDF olarak kaydet" diyor.
+
+- Rota: `/panel/siparisler/[id]/pdf`, yeni `(cikti)` grubu altında.
+  Panel kabuğunu `@media print` ile gizlemek yerine **hiç render etmiyoruz**;
+  ekran önizlemesi de gerçek çıktıya benziyor. Grubun kendi yetki kontrolü
+  var — dashboard düzeninin altında olmadığı için oradaki koruma kapsamıyor
+- Üstte müşteri bilgileri + tarih, altta ürün tablosu: **resim, ürün adı,
+  miktar, birim fiyat, toplam**. Görsel 96px — Ticimax çıktısındakinin
+  yaklaşık iki katı
+- `@page { size: A4; margin: 12mm }`, satırlar sayfa arasında bölünmüyor,
+  çok sayfalı çıktıda tablo başlığı her sayfada tekrar ediyor
+
+**Gerçek PDF kütüphanesi kullanılmadı.** pdf-lib/pdfkit Türkçe için gömülü
+font dosyası ister (standart PDF fontları ş/ğ/ı/İ taşımıyor) ve WebP görselleri
+desteklemediği için hepsini sunucuda dönüştürmek gerekirdi. Tarayıcının
+"PDF olarak kaydet"i aynı sonucu sıfır bağımlılıkla veriyor.
+
+---
+
 ## Vitrin düzeltmeleri — ikinci tur (2026-08-09)  ✅
 
 - **Bayi iskontosu vurgusu kaldırıldı.** Kullanıcı "çok nadir iskonto

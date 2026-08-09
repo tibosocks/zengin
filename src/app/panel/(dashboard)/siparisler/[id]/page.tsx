@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone } from "lucide-react";
+import { ArrowLeft, FileText, Phone } from "lucide-react";
 
+import { buttonStyles } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/surface";
 import { OrderStatusPanel } from "@/components/panel/order-status-panel";
 import { ORDER_STATUSES } from "@/lib/order-status";
@@ -54,6 +55,16 @@ export default async function OrderDetailPage({
         <span className="text-sm text-muted">
           {formatDateTime(order.createdAt)} · {order.channel}
         </span>
+
+        <a
+          href={`/panel/siparisler/${order.id}/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${buttonStyles({ variant: "secondary", size: "sm" })} ml-auto`}
+        >
+          <FileText className="size-4" />
+          Siparişi PDF oluştur
+        </a>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
