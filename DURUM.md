@@ -270,6 +270,34 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Ana sayfa yenilendi  ✅ (2026-08-09)
+
+Eski hâli üç bölümdü: ince bir başlık şeridi, düz kategori kutuları, ürün
+ızgarası. Yeni hâli altı bölüm:
+
+1. **Giriş** — güçlü başlık, iki eylem (ürünler / bayi başvurusu), veriden
+   okunan üç sayı (222 ürün · 541 beden&renk · 4 ana grup) ve kategori
+   görsellerinden şaşırtmalı mozaik. Ayrı tanıtım görseli tutmuyoruz,
+   katalogdaki gerçek ürünler gösteriliyor
+2. **Çalışma şeklimiz** — düzine satış, bayi iskontosu, ödeme mağazada,
+   WhatsApp desteği
+3. **Ürün grupları** — görselli kartlar, alt kategori bağlantıları ve alt
+   ağacın tamamındaki ürün sayısı (Kadın 128, Erkek 54, Çocuk 32, Bebe 8)
+4. **Ürün vitrini** — `isFeatured` işaretli ürünler, yoksa en son eklenenler
+5. **Sipariş nasıl veriliyor** — üç adım. Ödeme almayan bir site olduğumuz
+   için bu açıklama güven açısından gerekliydi
+6. **Bayilik çağrısı** — koyu şerit, başvuru + WhatsApp
+
+Yeni yardımcılar `catalog.ts` içinde: `getCategoryHighlights()` (kategorinin
+kendi görseli yok, ilk ürünün kapağı kullanılıyor) ve `getCatalogStats()`
+(sayılar uydurulmuyor, veritabanından geliyor).
+
+**Not:** hiçbir ürün `isFeatured` işaretli değil, o yüzden vitrin başlığı
+"Kataloğumuzdan" çıkıyor. Panelden ürünleri öne çıkan işaretlerseniz başlık
+"Öne çıkan ürünler" olur ve seçtikleriniz gösterilir.
+
+---
+
 ## Görsel yavaşlığı  ✅ (2026-08-09)
 
 Yeni bir cihazdan ilk girişte görseller çok yavaş yükleniyordu. Ölçüm:

@@ -428,3 +428,103 @@ export async function getProductDetail(
       null,
   };
 }
+
+export interface CategoryHighlight {
+  id: string;
+  name: string;
+  slug: string;
+  /** Kategori ve tüm alt kategorilerindeki aktif ürün sayısı */
+  productCount: number;
+  /** Kategorinin kendi görseli yoksa içindeki ilk ürünün kapak görseli */
+  imageUrl: string | null;
+  children: Array<{ name: string; slug: string }>;
+}
+
+/**
+ * Ana sayfadaki kategori kartları.
+ *
+ * Kategorilerin kendi `imageUrl`'i Ticimax aktarımında gelmedi; boş kart
+ * göstermek yerine kategorinin ilk ürününün kapak görselini kullanıyoruz.
+ * Ürün sayısı alt ağacın tamamını kapsıyor — "Kadın Çorapları" kartında
+ * sadece doğrudan bağlı ürünleri saymak yanıltıcı olurdu.
+ */
+export async function getCategoryHighlights(): Promise<CategoryHighlight[]> {
+  const all = await prisma.category.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      parentId: true,
+      imageUrl: true,
+      showInMenu: true,
+    },
+  });
+
+  const childrenOf = new Map<string, typeof all>();
+  for (const row of all) {
+    if (!row.parentId) continue;
+    childrenOf.set(row.parentId, [...(childrenOf.get(row.parentId) ?? []), row]);
+  }
+
+  const roots = all.filter((row) => row.parentId === null && row.showInMenu);
+
+  return Promise.all(
+    roots.map(async (root) => {
+      // Alt ağacın tamamı
+      const branch: string[] = [];
+      const queue = [root.id];
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        branch.push(current);
+        for (const child of childrenOf.get(current) ?? []) queue.push(child.id);
+      }
+
+      const where = {
+        isActive: true,
+        categories: { some: { categoryId: { in: branch } } },
+      };
+
+      const [productCount, cover] = await Promise.all([
+        prisma.product.count({ where }),
+        root.imageUrl
+          ? Promise.resolve(null)
+          : prisma.product.findFirst({
+              where: { ...where, images: { some: {} } },
+              orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+              select: {
+                images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
+              },
+            }),
+      ]);
+
+      return {
+        id: root.id,
+        name: root.name,
+        slug: root.slug,
+        productCount,
+        imageUrl: root.imageUrl ?? cover?.images[0]?.url ?? null,
+        children: (childrenOf.get(root.id) ?? [])
+          .filter((child) => child.showInMenu)
+          .slice(0, 4)
+          .map((child) => ({ name: child.name, slug: child.slug })),
+      };
+    }),
+  );
+}
+
+/** Ana sayfa istatistikleri. Uydurma sayı yazmamak için veriden okunuyor. */
+export async function getCatalogStats(): Promise<{
+  products: number;
+  variants: number;
+  categories: number;
+}> {
+  const [products, variants, categories] = await Promise.all([
+    prisma.product.count({ where: { isActive: true } }),
+    prisma.variant.count({ where: { isActive: true, product: { isActive: true } } }),
+    prisma.category.count({ where: { isActive: true, parentId: null } }),
+  ]);
+
+  return { products, variants, categories };
+}
