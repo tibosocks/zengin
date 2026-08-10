@@ -271,6 +271,33 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Raporlar ekranı  ✅ (2026-08-09)
+
+Panelde iki gerçek boşluk vardı: hiç rapor yoktu ve **519 stok hareketi
+kaydediliyor ama hiçbir yerde gösterilmiyordu** (`StockMovement` yazılıyor,
+okunmuyordu).
+
+`/panel/raporlar`
+- Ciro özeti: bugün / 7 gün / 30 gün / bu ay / tüm zamanlar — sipariş sayısı
+  ve ortalama sepetle birlikte
+- En çok satan ürünler (varyantlar ürün düzeyinde toplanıyor)
+- En çok alan müşteriler
+- Stok uyarıları: eşiğin altına düşen varyantlar, tükenenler önce
+
+`/panel/raporlar/stok-hareketleri`
+- 519 kaydın tamamı; sebep filtresi (satış/iptal/sayım/giriş/düzeltme/aktarım),
+  ürün adı ve SKU araması, sayfalama
+- Her satırda kim, ne zaman, ne kadar, hangi sipariş
+
+**Ciro tanımı:** iptal dışındaki tüm siparişler sayılıyor, sadece teslim
+edilenler değil. Ödeme mağazada alındığı için sipariş günlerce
+"hazırlanıyor"da kalabiliyor; onları saymamak tabloyu boş gösterirdi.
+Tutarlar KDV hariç (`subtotal`), panelin geri kalanıyla tutarlı.
+
+Veri katmanı `src/lib/panel/reports.ts` — sayfa bileşenlerinde sorgu yok.
+
+---
+
 ## SEO  ✅ (2026-08-09)
 
 Denetim yapıldı, üç gerçek eksik kapatıldı:

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BarChart3,
   Bell,
   FileText,
   FolderTree,
@@ -28,6 +29,7 @@ const NAV = [
   { href: "/panel/urunler", label: "Ürünler", icon: Package },
   { href: "/panel/kategoriler", label: "Kategoriler", icon: FolderTree },
   { href: "/panel/musteriler", label: "Müşteriler", icon: Users },
+  { href: "/panel/raporlar", label: "Raporlar", icon: BarChart3 },
   { href: "/panel/sayfalar", label: "Sayfalar", icon: FileText },
   { href: "/panel/ayarlar", label: "Ayarlar", icon: Settings },
 ];
