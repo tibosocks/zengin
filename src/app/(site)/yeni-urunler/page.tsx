@@ -4,7 +4,10 @@ import { ProductGrid } from "@/components/shop/product-card";
 import { getCustomerSession } from "@/lib/auth";
 import { getProductCards, getViewerDiscount } from "@/lib/shop/catalog";
 
-export const metadata: Metadata = { title: "Yeni Ürünler" };
+export const metadata: Metadata = {
+  title: "Yeni Ürünler",
+  alternates: { canonical: "/yeni-urunler" },
+};
 export const dynamic = "force-dynamic";
 
 export default async function NewProductsPage() {

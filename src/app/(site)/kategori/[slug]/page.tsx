@@ -3,6 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductGrid } from "@/components/shop/product-card";
+import {
+  BreadcrumbJsonLd,
+  ItemListJsonLd,
+} from "@/components/shop/structured-data";
 import { getCustomerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -48,16 +52,27 @@ async function loadCategory(slug: string) {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: PageProps<"/kategori/[slug]">): Promise<Metadata> {
   const { slug } = await params;
+  const query = await searchParams;
   const category = await loadCategory(slug);
   if (!category) return { title: "Kategori bulunamadı" };
+
+  // Sıralama seçenekleri aynı ürünleri farklı adreslerde gösteriyor;
+  // hepsi tek bir adrese işaret etmezse arama motoru bunları kopya
+  // içerik sayar. Sayfalama ise kendi adresini gösterir — 2. sayfada
+  // gerçekten farklı ürünler var.
+  const page = Math.max(1, Number(query.sayfa) || 1);
+  const canonical =
+    page > 1 ? `/kategori/${slug}?sayfa=${page}` : `/kategori/${slug}`;
 
   return {
     title: category.metaTitle || category.name,
     description:
       category.metaDescription ||
       `${category.name} — toptan çorap. Zengin Socks.`,
+    alternates: { canonical },
   };
 }
 
@@ -108,6 +123,14 @@ export default async function CategoryPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+      <BreadcrumbJsonLd
+        trail={trail.map((item) => ({
+          name: item.name,
+          path: `/kategori/${item.slug}`,
+        }))}
+      />
+      <ItemListJsonLd products={items} />
+
       <nav aria-label="Sayfa yolu" className="mb-4 text-sm text-muted">
         <Link href="/" className="hover:text-ink">
           Ana sayfa

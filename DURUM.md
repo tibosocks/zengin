@@ -264,9 +264,37 @@ Bu kural iki kez derlemeyi kırdı.
 3. **Resend anahtarını gir** — e-posta kodu yazıldı ve bağlandı, sadece
    `RESEND_API_KEY` + `MAIL_FROM` ve alan adı doğrulaması eksik
    (SETUP.md adım 7). Anahtar yokken gönderim sessizce atlanıyor
-4. **Google Search Console** — site ve `sitemap.xml` eklenmeli
+4. **Google Search Console** — site ve `sitemap.xml` eklenmeli (SEO'nun
+   kod tarafı bitti, kalan tek adım bu)
 5. `cdn.zenginsocks.com` — r2.dev üretim için önerilmiyor
 6. Yayın öncesi kontrol listesinin kalanı ([SETUP.md](SETUP.md))
+
+---
+
+## SEO  ✅ (2026-08-09)
+
+Denetim yapıldı, üç gerçek eksik kapatıldı:
+
+- **Canonical adres yoktu.** `?sirala=ucuz`, `?sirala=pahali` gibi
+  varyantlar aynı ürünleri farklı adreslerde gösteriyor, arama motoru
+  bunları kopya içerik sayıyordu. Artık sıralama varyantları temiz adrese
+  işaret ediyor; **sayfalama kendi adresini gösteriyor** (2. sayfada
+  gerçekten farklı ürünler var). Ana sayfa, ürün, kategori, sabit sayfa,
+  yeni ürünler, bayi sayfaları — hepsinde var
+- **Yapısal veri sadece üründeydi.** Eklenenler: ana sayfada `Organization`
+  (telefon/adres Ayarlar'dan) + `WebSite` (site içi arama kutusu),
+  ürün ve kategoride `BreadcrumbList`, kategoride `ItemList`.
+  Ürün şemasına `sku` eklendi. Hepsi `structured-data.tsx` içinde toplandı
+- Canonical kök düzene **konmadı** bilerek: oradaki değer, kendi
+  canonical'ını vermeyen her sayfaya miras kalıp hepsini ana sayfaya
+  yönlendirirdi
+
+Zaten yerinde olanlar: sitemap (279 adres), robots.txt, `html lang="tr"`,
+her sayfada başlık + açıklama + OpenGraph, sepet/hesabım/arama/sipariş
+sayfalarında `noindex`, 404 doğru dönüyor, görsel optimizasyonu.
+
+**Kalan tek iş sizde:** Google Search Console'a siteyi ekleyip
+`https://zenginsocks.com/sitemap.xml` adresini bildirmek.
 
 ---
 

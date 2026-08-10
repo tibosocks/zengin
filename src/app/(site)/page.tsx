@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   ArrowRight,
   Boxes,
@@ -10,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ProductGrid } from "@/components/shop/product-card";
+import { OrganizationJsonLd } from "@/components/shop/structured-data";
 import { buttonStyles } from "@/components/ui/button";
 import { getCustomerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -20,19 +22,31 @@ import {
   getViewerDiscount,
 } from "@/lib/shop/catalog";
 
+export const metadata: Metadata = {
+  // Kök düzene koymuyoruz: oradaki canonical, kendi değerini vermeyen her
+  // sayfaya miras kalır ve hepsi ana sayfayı gösterir.
+  alternates: { canonical: "/" },
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const session = await getCustomerSession();
   const { discountPercent } = await getViewerDiscount(session?.customerId);
 
-  const [categories, stats, featured, newest, whatsapp] = await Promise.all([
+  const [categories, stats, featured, newest, settings] = await Promise.all([
     getCategoryHighlights(),
     getCatalogStats(),
     getProductCards({ isFeatured: true, take: 8, discountPercent }),
     getProductCards({ take: 8, sort: "yeni", discountPercent }),
-    prisma.setting.findUnique({ where: { key: "whatsappNumber" } }),
+    prisma.setting.findMany({
+      where: { key: { in: ["whatsappNumber", "contactPhone", "contactAddress"] } },
+    }),
   ]);
+
+  const ayar = (key: string) =>
+    settings.find((row) => row.key === key)?.value || null;
+  const whatsapp = { value: ayar("whatsappNumber") };
 
   // Panelde hiçbir ürün "öne çıkan" işaretlenmemiş olabilir; o durumda
   // vitrin boş kalmasın diye en son eklenenler gösteriliyor.
@@ -47,6 +61,11 @@ export default async function HomePage() {
 
   return (
     <>
+      <OrganizationJsonLd
+        phone={ayar("contactPhone")}
+        address={ayar("contactAddress")}
+      />
+
       {/* --- giriş ------------------------------------------------------ */}
       <section className="border-b border-line bg-surface-alt">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:px-8 lg:py-24">

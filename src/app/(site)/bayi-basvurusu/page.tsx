@@ -4,7 +4,10 @@ import { CheckCircle2 } from "lucide-react";
 
 import { DealerRegisterForm } from "./register-form";
 
-export const metadata: Metadata = { title: "Bayi başvurusu" };
+export const metadata: Metadata = {
+  title: "Bayi başvurusu",
+  alternates: { canonical: "/bayi-basvurusu" },
+};
 export const dynamic = "force-dynamic";
 
 export default async function DealerRegisterPage({

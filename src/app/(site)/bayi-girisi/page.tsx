@@ -6,7 +6,10 @@ import { getCustomerSession } from "@/lib/auth";
 
 import { DealerLoginForm } from "./login-form";
 
-export const metadata: Metadata = { title: "Bayi girişi" };
+export const metadata: Metadata = {
+  title: "Bayi girişi",
+  alternates: { canonical: "/bayi-girisi" },
+};
 export const dynamic = "force-dynamic";
 
 export default async function DealerLoginPage() {

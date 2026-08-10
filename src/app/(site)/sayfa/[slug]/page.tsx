@@ -20,6 +20,7 @@ export async function generateMetadata({
   return {
     title: page.metaTitle || page.title,
     description: page.metaDescription || undefined,
+    alternates: { canonical: `/sayfa/${slug}` },
   };
 }
 

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ProductGrid } from "@/components/shop/product-card";
 import { ProductView } from "@/components/shop/product-view";
+import { BreadcrumbJsonLd } from "@/components/shop/structured-data";
 import { getCustomerSession } from "@/lib/auth";
 import { formatKurus } from "@/lib/price";
 import { prisma } from "@/lib/prisma";
@@ -29,6 +30,7 @@ export async function generateMetadata({
       product.metaDescription ||
       product.shortDesc ||
       `${product.name} — toptan çorap. Zengin Socks.`,
+    alternates: { canonical: `/urun/${slug}` },
     openGraph: {
       title: product.name,
       images: product.images[0] ? [product.images[0].url] : undefined,
@@ -106,6 +108,16 @@ export default async function ProductPage({ params }: PageProps<"/urun/[slug]">)
         </section>
       ) : null}
 
+      <BreadcrumbJsonLd
+        trail={[
+          ...trail.map((item) => ({
+            name: item.name,
+            path: `/kategori/${item.slug}`,
+          })),
+          { name: product.name, path: `/urun/${slug}` },
+        ]}
+      />
+
       {/* Arama motorlarının fiyat ve stok durumunu okuyabilmesi için */}
       <script
         type="application/ld+json"
@@ -117,6 +129,7 @@ export default async function ProductPage({ params }: PageProps<"/urun/[slug]">)
             image: product.images.map((image) => image.url),
             description: product.shortDesc ?? undefined,
             brand: { "@type": "Brand", name: "Zengin" },
+            sku: product.variants[0]?.sku ?? undefined,
             offers: {
               "@type": "Offer",
               priceCurrency: "TRY",
