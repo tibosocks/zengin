@@ -43,7 +43,60 @@ export function CustomerTable({ rows }: { rows: CustomerRow[] }) {
       ) : null}
 
       <Card className="overflow-hidden">
-        <table className="w-full text-sm">
+        {/* Mobil kart listesi. İskonto düzenleme ve onay düğmesi burada da
+            çalışıyor; tabloyu dar ekrana sıkıştırmak yerine yeniden
+            diziyoruz. */}
+        <ul className="divide-y divide-line-soft lg:hidden">
+          {rows.map((row) => (
+            <li key={row.id} className="px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Link
+                    href={`/panel/musteriler/${row.id}`}
+                    className="block truncate font-medium text-ink"
+                  >
+                    {row.companyName || row.fullName}
+                  </Link>
+                  {row.companyName ? (
+                    <span className="block truncate text-xs text-muted">
+                      {row.fullName}
+                    </span>
+                  ) : null}
+                </div>
+                {row.status === "onay_bekliyor" ? (
+                  <Badge tone="warn">Onay bekliyor</Badge>
+                ) : row.status === "pasif" ? (
+                  <Badge tone="danger">Pasif</Badge>
+                ) : row.type === "bayi" ? (
+                  <Badge tone="info">Bayi</Badge>
+                ) : (
+                  <Badge>Bireysel</Badge>
+                )}
+              </div>
+
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 text-xs text-muted">
+                <a href={`tel:0${row.phone}`} className="tnum text-ink-soft">
+                  0{row.phone}
+                </a>
+                <span className="tnum">{row.orderCount} sipariş</span>
+                <span className="tnum">{formatKurus(row.revenueKurus)}</span>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-xs text-muted">
+                  {row.status === "onay_bekliyor" ? "Bayi onayı" : "İskonto"}
+                </span>
+                {row.status === "onay_bekliyor" ? (
+                  <ApproveCell customer={row} onMessage={setMessage} />
+                ) : (
+                  <DiscountCell customer={row} onMessage={setMessage} />
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <table className="hidden w-full text-sm lg:table">
           <thead className="border-b border-line bg-surface-alt text-left text-xs text-muted">
             <tr>
               <th className="px-4 py-2 font-medium">Müşteri</th>
@@ -60,21 +113,23 @@ export function CustomerTable({ rows }: { rows: CustomerRow[] }) {
                 key={row.id}
                 className="border-b border-line-soft last:border-0 hover:bg-surface-alt"
               >
-                <td className="px-4 py-2.5">
+                <td className="max-w-56 px-4 py-2.5">
                   <Link
                     href={`/panel/musteriler/${row.id}`}
-                    className="font-medium text-ink hover:underline"
+                    className="block truncate font-medium text-ink hover:underline"
                   >
                     {row.companyName || row.fullName}
                   </Link>
                   {row.companyName ? (
-                    <span className="block text-xs text-muted">{row.fullName}</span>
+                    <span className="block truncate text-xs text-muted">
+                      {row.fullName}
+                    </span>
                   ) : null}
                 </td>
-                <td className="px-4 py-2.5">
+                <td className="max-w-48 px-4 py-2.5">
                   <a
                     href={`tel:0${row.phone}`}
-                    className="tnum text-ink-soft hover:text-ink"
+                    className="tnum whitespace-nowrap text-ink-soft hover:text-ink"
                   >
                     0{row.phone}
                   </a>
@@ -105,7 +160,7 @@ export function CustomerTable({ rows }: { rows: CustomerRow[] }) {
                 <td className="tnum px-4 py-2.5 text-right text-muted">
                   {row.orderCount}
                 </td>
-                <td className="tnum px-4 py-2.5 text-right">
+                <td className="tnum px-4 py-2.5 text-right whitespace-nowrap">
                   {formatKurus(row.revenueKurus)}
                 </td>
               </tr>

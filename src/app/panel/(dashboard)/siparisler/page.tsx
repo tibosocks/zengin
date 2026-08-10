@@ -150,58 +150,94 @@ export default async function OrdersPage({
             }
           />
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-line bg-surface-alt text-left text-xs text-muted">
-              <tr>
-                <th className="px-4 py-2 font-medium">Sipariş</th>
-                <th className="px-4 py-2 font-medium">Müşteri</th>
-                <th className="px-4 py-2 font-medium">Durum</th>
-                <th className="px-4 py-2 text-right font-medium">Kalem</th>
-                <th className="px-4 py-2 text-right font-medium">Tutar</th>
-                <th className="px-4 py-2 text-right font-medium">Tarih</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobil kart listesi — tablo dar ekranda okunmuyordu */}
+            <ul className="divide-y divide-line-soft md:hidden">
               {orders.map((order) => (
-                <tr
-                  key={order.id}
-                  className="border-b border-line-soft last:border-0 hover:bg-surface-alt"
-                >
-                  <td className="px-4 py-2.5">
-                    <Link
-                      href={`/panel/siparisler/${order.id}`}
-                      className="font-medium text-ink hover:underline"
-                    >
-                      {order.orderNo}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span className="text-ink-soft">
-                      {order.customer.companyName || order.customer.fullName}
-                    </span>
-                    <span className="tnum ml-2 text-xs text-muted">
-                      0{order.customer.phone}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <Badge tone={TONE[order.status] ?? "neutral"}>
-                      {ORDER_STATUSES.find((item) => item.key === order.status)
-                        ?.label ?? order.status}
-                    </Badge>
-                  </td>
-                  <td className="tnum px-4 py-2.5 text-right text-muted">
-                    {order._count.items}
-                  </td>
-                  <td className="tnum px-4 py-2.5 text-right font-medium">
-                    {formatKurus(toKurus(order.grandTotal))}
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-muted">
-                    {formatDateTime(order.createdAt)}
-                  </td>
-                </tr>
+                <li key={order.id}>
+                  <Link
+                    href={`/panel/siparisler/${order.id}`}
+                    className="block px-4 py-3 active:bg-surface-alt"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-ink">{order.orderNo}</span>
+                      <span className="tnum font-medium text-ink">
+                        {formatKurus(toKurus(order.grandTotal))}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between gap-3">
+                      <span className="truncate text-sm text-ink-soft">
+                        {order.customer.companyName || order.customer.fullName}
+                      </span>
+                      <Badge tone={TONE[order.status] ?? "neutral"}>
+                        {ORDER_STATUSES.find((item) => item.key === order.status)
+                          ?.label ?? order.status}
+                      </Badge>
+                    </div>
+                    <p className="tnum mt-1 text-xs text-muted">
+                      0{order.customer.phone} · {order._count.items} kalem ·{" "}
+                      {formatDateTime(order.createdAt)}
+                    </p>
+                  </Link>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ul>
+
+            <table className="hidden w-full text-sm md:table">
+              <thead className="border-b border-line bg-surface-alt text-left text-xs text-muted">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Sipariş</th>
+                  <th className="px-4 py-2 font-medium">Müşteri</th>
+                  <th className="px-4 py-2 font-medium">Durum</th>
+                  <th className="px-4 py-2 text-right font-medium">Kalem</th>
+                  <th className="px-4 py-2 text-right font-medium">Tutar</th>
+                  <th className="hidden px-4 py-2 text-right font-medium lg:table-cell">
+                    Tarih
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="border-b border-line-soft last:border-0 hover:bg-surface-alt"
+                  >
+                    <td className="px-4 py-2.5">
+                      <Link
+                        href={`/panel/siparisler/${order.id}`}
+                        className="font-medium whitespace-nowrap text-ink hover:underline"
+                      >
+                        {order.orderNo}
+                      </Link>
+                    </td>
+                    <td className="max-w-56 px-4 py-2.5">
+                      <span className="block truncate text-ink-soft">
+                        {order.customer.companyName || order.customer.fullName}
+                      </span>
+                      <span className="tnum text-xs text-muted">
+                        0{order.customer.phone}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <Badge tone={TONE[order.status] ?? "neutral"}>
+                        {ORDER_STATUSES.find((item) => item.key === order.status)
+                          ?.label ?? order.status}
+                      </Badge>
+                    </td>
+                    <td className="tnum px-4 py-2.5 text-right text-muted">
+                      {order._count.items}
+                    </td>
+                    <td className="tnum px-4 py-2.5 text-right font-medium whitespace-nowrap">
+                      {formatKurus(toKurus(order.grandTotal))}
+                    </td>
+                    <td className="hidden px-4 py-2.5 text-right whitespace-nowrap text-muted lg:table-cell">
+                      {formatDateTime(order.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </Card>
 

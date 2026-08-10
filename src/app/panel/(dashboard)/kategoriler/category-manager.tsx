@@ -243,9 +243,17 @@ function CategoryRow({
       }}
       className="border-b border-line-soft last:border-0"
     >
+      {/* Girinti dar ekranda seviye başına 12px, geniş ekranda 24px.
+          Telefonda 24px'te üçüncü seviyenin adı ikiye bölünüyordu. */}
       <div
-        className="flex items-center gap-2 py-2.5 pr-4"
-        style={{ paddingLeft: `${depth * 24 + 12}px` }}
+        className="flex items-center gap-1 py-2.5 pr-2 sm:gap-2 sm:pr-4"
+        style={
+          {
+            "--girinti": `${depth * 12 + 8}px`,
+            "--girinti-genis": `${depth * 24 + 12}px`,
+            paddingLeft: "var(--girinti)",
+          } as React.CSSProperties
+        }
       >
         <button
           type="button"
@@ -263,7 +271,7 @@ function CategoryRow({
             {!node.isActive ? <Badge tone="warn">Pasif</Badge> : null}
             {!node.showInMenu ? <Badge>Menüde yok</Badge> : null}
           </div>
-          <p className="text-xs text-muted">
+          <p className="truncate text-xs text-muted">
             /{node.slug}
             {node.productCount > 0 ? ` · ${node.productCount} ürün` : ""}
           </p>

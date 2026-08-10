@@ -79,7 +79,9 @@ export default async function OrderDetailPage({
               <thead className="border-b border-line text-left text-xs text-muted">
                 <tr>
                   <th className="px-5 py-2 font-medium">Ürün</th>
-                  <th className="px-5 py-2 text-right font-medium">Birim</th>
+                  <th className="hidden px-5 py-2 text-right font-medium sm:table-cell">
+                    Birim
+                  </th>
                   <th className="px-5 py-2 text-right font-medium">Adet</th>
                   <th className="px-5 py-2 text-right font-medium">Tutar</th>
                 </tr>
@@ -93,8 +95,13 @@ export default async function OrderDetailPage({
                         {item.optionsText ? `${item.optionsText} · ` : ""}
                         {item.sku ?? "kodsuz"}
                       </p>
+                      {/* Birim fiyat sütunu dar ekranda gizli; bilgi
+                          kaybolmasın diye ürünün altında tekrar ediyor. */}
+                      <p className="tnum text-xs text-muted sm:hidden">
+                        Birim {formatKurus(toKurus(item.unitPrice))}
+                      </p>
                     </td>
-                    <td className="tnum px-5 py-3 text-right">
+                    <td className="tnum hidden px-5 py-3 text-right sm:table-cell">
                       {formatKurus(toKurus(item.unitPrice))}
                       {toKurus(item.listPrice) > toKurus(item.unitPrice) ? (
                         <span className="block text-xs text-muted line-through">

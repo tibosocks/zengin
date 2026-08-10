@@ -98,7 +98,140 @@ export function ProductTable({
         <p className="rounded-md bg-ok-soft px-3 py-2 text-sm text-ok">{message}</p>
       ) : null}
 
-      <Card className="overflow-hidden">
+      {/* Mobil liste. Tabloyu dar ekrana sıkıştırınca ürün adı beş satıra
+          bölünüyor ve Stok sütunu kartın dışında kalıp erişilemez oluyordu.
+          Satır içi fiyat/stok düzenleme burada da çalışıyor. */}
+      <Card className="overflow-hidden lg:hidden">
+        <ul className="divide-y divide-line-soft">
+          {rows.map((row) => {
+            const isOpen = expanded.has(row.id);
+            const single = row.variants.length === 1 ? row.variants[0] : null;
+            const totalStock = row.variants.reduce((sum, v) => sum + v.stock, 0);
+
+            return (
+              <li key={row.id} className="px-3 py-3">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`${row.name} seç`}
+                    checked={selected.has(row.id)}
+                    onChange={() => toggleSelected(row.id)}
+                    className="mt-1 size-4 shrink-0 accent-ink"
+                  />
+
+                  <div className="size-12 shrink-0 overflow-hidden rounded border border-line bg-surface-alt">
+                    {row.imageUrl ? (
+                      <Image
+                        src={row.imageUrl}
+                        alt=""
+                        width={48}
+                        height={48}
+                        className="size-12 object-cover"
+                      />
+                    ) : null}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/panel/urunler/${row.id}`}
+                      className="block text-sm leading-snug font-medium text-ink"
+                    >
+                      {row.name}
+                    </Link>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {row.categoryName ?? "kategorisiz"}
+                      {row.variants.length > 1
+                        ? ` · ${row.variants.length} varyant`
+                        : single?.label
+                          ? ` · ${single.label}`
+                          : ""}
+                      {!row.isActive ? " · pasif" : ""}
+                    </p>
+
+                    {/* İki sütunlu ızgara: tek varyantlı satırda düzenleme
+                        kutusu, çok varyantlıda düz metin çıkıyor; ızgara
+                        olmadan ikisi farklı hizalarda duruyordu. */}
+                    <div className="mt-2 grid grid-cols-2 gap-x-2">
+                      <div>
+                        <span className="block text-xs text-muted">Fiyat</span>
+                        {single ? (
+                          <InlinePrice variant={single} />
+                        ) : (
+                          <span className="tnum block py-1 text-sm text-ink-soft">
+                            {formatPriceRange(row.variants)}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="block text-xs text-muted">Stok</span>
+                        {single ? (
+                          <InlineStock variant={single} />
+                        ) : (
+                          <span
+                            className={cn(
+                              "tnum block py-1 text-sm",
+                              totalStock <= 0 ? "text-danger" : "text-ink-soft",
+                            )}
+                          >
+                            {totalStock}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {row.variants.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(row.id)}
+                      aria-label={isOpen ? "Varyantları gizle" : "Varyantları göster"}
+                      aria-expanded={isOpen}
+                      className="-mr-1 shrink-0 rounded p-2 text-muted"
+                    >
+                      {isOpen ? (
+                        <ChevronDown className="size-4" />
+                      ) : (
+                        <ChevronRight className="size-4" />
+                      )}
+                    </button>
+                  ) : null}
+                </div>
+
+                {isOpen ? (
+                  <ul className="mt-2 space-y-2 border-t border-line-soft pt-2 pl-7">
+                    {row.variants.map((variant) => (
+                      <li key={variant.id} className="flex items-center gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm text-ink-soft">
+                            {variant.label}
+                            {!variant.isActive ? (
+                              <Badge tone="warn" className="ml-2">
+                                Pasif
+                              </Badge>
+                            ) : null}
+                            {variant.stock - variant.reserved <= 0 ? (
+                              <Badge tone="danger" className="ml-2">
+                                Tükendi
+                              </Badge>
+                            ) : null}
+                          </p>
+                          {variant.sku ? (
+                            <p className="text-xs text-muted">{variant.sku}</p>
+                          ) : null}
+                        </div>
+                        <InlinePrice variant={variant} />
+                        <InlineStock variant={variant} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+
+      <Card className="hidden overflow-hidden lg:block">
         <table className="w-full text-sm">
           <thead className="border-b border-line bg-surface-alt text-left text-xs text-muted">
             <tr>
@@ -340,7 +473,7 @@ function InlinePrice({ variant }: { variant: VariantRow }) {
       aria-label={`${variant.label} fiyatı`}
       title={error ?? undefined}
       className={cn(
-        "tnum w-24 rounded border bg-transparent px-2 py-1 text-right",
+        "tnum w-20 rounded border bg-transparent px-2 py-1 text-right lg:w-24",
         "hover:border-line focus:border-ink focus:bg-white",
         error
           ? "border-danger text-danger"
@@ -394,7 +527,7 @@ function InlineStock({ variant }: { variant: VariantRow }) {
         aria-label={`${variant.label} stoğu`}
         title={error ?? undefined}
         className={cn(
-          "tnum w-16 rounded border bg-transparent px-2 py-1 text-right",
+          "tnum w-14 rounded border bg-transparent px-2 py-1 text-right lg:w-16",
           "hover:border-line focus:border-ink focus:bg-white",
           error
             ? "border-danger text-danger"

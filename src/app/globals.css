@@ -66,6 +66,12 @@ input[type="number"] {
 /* Yazdırma: sipariş fişi.
    Panel kabuğu, yan menü ve düğmeler kâğıda basılmamalı — sadece
    siparişin kendisi çıksın. */
+@media (min-width: 640px) {
+  [style*="--girinti-genis"] {
+    padding-left: var(--girinti-genis) !important;
+  }
+}
+
 @media print {
   aside,
   header,

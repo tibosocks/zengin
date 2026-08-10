@@ -75,7 +75,7 @@ export default async function CustomerDetailPage({
 
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <Stat label="Sipariş" value={String(paidOrders.length)} />
             <Stat label="Toplam ciro" value={formatKurus(revenue)} />
             <Stat
@@ -95,9 +95,13 @@ export default async function CustomerDetailPage({
                   <tr>
                     <th className="px-5 py-2 font-medium">Sipariş</th>
                     <th className="px-5 py-2 font-medium">Durum</th>
-                    <th className="px-5 py-2 text-right font-medium">Kalem</th>
+                    <th className="hidden px-5 py-2 text-right font-medium sm:table-cell">
+                      Kalem
+                    </th>
                     <th className="px-5 py-2 text-right font-medium">Tutar</th>
-                    <th className="px-5 py-2 text-right font-medium">Tarih</th>
+                    <th className="hidden px-5 py-2 text-right font-medium md:table-cell">
+                      Tarih
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -117,13 +121,13 @@ export default async function CustomerDetailPage({
                       <td className="px-5 py-2.5 text-muted">
                         {orderStatusLabel(order.status)}
                       </td>
-                      <td className="tnum px-5 py-2.5 text-right text-muted">
+                      <td className="tnum hidden px-5 py-2.5 text-right text-muted sm:table-cell">
                         {order._count.items}
                       </td>
                       <td className="tnum px-5 py-2.5 text-right">
                         {formatKurus(toKurus(order.grandTotal))}
                       </td>
-                      <td className="px-5 py-2.5 text-right text-muted">
+                      <td className="hidden px-5 py-2.5 text-right whitespace-nowrap text-muted md:table-cell">
                         {formatDateTime(order.createdAt)}
                       </td>
                     </tr>

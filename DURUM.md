@@ -270,6 +270,33 @@ Bu kural iki kez derlemeyi kırdı.
 
 ---
 
+## Panel mobil arayüzü  ✅ (2026-08-09)
+
+**Kök sebep: panel tablolarının hiçbirinde mobil düzenleme yoktu.** Özet
+sayfası 375px ekranda 491px genişliğe taşıyordu (Son siparişler tablosunun
+Tarih sütunu); iOS taşan sayfayı sığdırmak için tamamını küçültüyor, bu yüzden
+uygulama "yarım ekran" gibi görünüyordu. Diğer sayfalar taşmıyordu ama
+sütunlar eziliyordu — sipariş numarası üç satıra bölünüyor, Ürünler
+ekranında Stok sütunu kartın dışında kalıp erişilemiyordu.
+
+Çözüm, ekran başına ayrı düşünüldü:
+
+- **Özet, Siparişler, Müşteriler** — `sm`/`md`/`lg` altında tablo yerine
+  kart listesi. Müşteri kartında iskonto düzenleme ve bayi onayı çalışmaya
+  devam ediyor
+- **Ürünler** — kart listesi; satır içi fiyat/stok düzenleme ve varyant
+  açma korunuyor. Fiyat/stok iki sütunlu ızgarada, etiket üstte: kutular
+  (`w-20`/`w-14`) yarım sütuna sığsın diye
+- **Sipariş detayı** — "Birim" sütunu dar ekranda gizli, birim fiyat ürünün
+  altında tekrar ediyor
+- **Müşteri detayı** — Kalem ve Tarih sütunları koşullu
+- **Kategoriler** — girinti telefonda seviye başına 12px (masaüstünde 24px
+  kaldı, CSS değişkeniyle). 24px'te üçüncü seviyenin adı ikiye bölünüyordu
+
+13 panel sayfası 375px'te tarandı, hiçbirinde yatay taşma kalmadı.
+
+---
+
 ## Panel telefona kurulabiliyor (PWA)  ✅ (2026-08-09)
 
 `public/panel.webmanifest` + panel düzeninde `appleWebApp` metadata'sı.
